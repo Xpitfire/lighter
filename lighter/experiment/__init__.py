@@ -1,1 +1,1 @@
-from lighter.experiment.baseexperiment import *
+from lighter.experiment.experiment import *
