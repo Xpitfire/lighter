@@ -1,14 +1,14 @@
-# -*- coding: utf-8 -*-
+import json
+import os
+
+from lighter.utils.misc import import_object, extract_named_args, try_to_number_or_bool, parse_args, DotDict
+
 """
 © Michael Widrich, Markus Hofmarcher, Marius-Constantin Dinu 2019
 
 Default configuration settings
 
 """
-import json
-import os
-
-from kp_pred.common.misc import import_object, extract_named_args, try_to_number_or_bool, parse_args, dotdict
 
 
 class Config(object):
@@ -23,7 +23,6 @@ class Config(object):
             args, override_args = parse_args()
             self.config_file = args.config
         else:
-            args = None
             override_args = None
             self.config_file = filename
 
@@ -41,7 +40,7 @@ class Config(object):
         if value is not None:
             if isinstance(value, str) and "import::" in value:
                 conf = Config(value[len("import::"):])
-                for k, v in dotdict(conf.__dict__).items():
+                for k, v in DotDict(conf.__dict__).items():
                     setattr(self, k, v)
                     print("CONFIG: {}={}".format(k, getattr(self, k)))
             else:
@@ -60,7 +59,7 @@ class Config(object):
         elif isinstance(value, str) and "config::" in value:
             try:
                 conf = Config(value[len("config::"):])
-                conf = dotdict(conf.__dict__)
+                conf = DotDict(conf.__dict__)
                 conf['config_path'] = value[len("config::"):]
                 value = conf
             except ModuleNotFoundError:
@@ -68,7 +67,7 @@ class Config(object):
         elif isinstance(value, dict):
             for k, v in value.items():
                 value[k] = self.__import_value_rec__(v)
-            value = dotdict(value)
+            value = DotDict(value)
 
         return value
 

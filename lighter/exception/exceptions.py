@@ -1,0 +1,2 @@
+class AbortRun(Exception):
+    pass

@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 requirements = {"install": ["ffmpeg", "natsort", "numpy", "tqdm", "imageio", "opencv-python",
                             "torch", "torchvision", "facenet-pytorch", "tensorboard", "coloredlogs",
-                            "petname"]}
+                            "petname", "pandas"]}
 
 install_requires = requirements["install"]
 

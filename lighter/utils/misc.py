@@ -6,6 +6,9 @@ import tempfile
 import zipfile
 from pathlib import Path
 from shutil import copyfile
+
+from lighter.exception import AbortRun
+
 """
 © Michael Widrich, Markus Hofmarcher, Marius-Constantin Dinu 2019
 """
@@ -13,15 +16,6 @@ from shutil import copyfile
 Author -- Michael Widrich
 Created on -- Wed Oct 19 10:30:51 2016
 """
-
-
-# ----------------------------------------------------------------------------------------------------------------------
-# Exceptions
-# ----------------------------------------------------------------------------------------------------------------------
-
-
-class AbortRun(Exception):
-    pass
 
 
 def check_kill_file(workspace):
@@ -275,8 +269,6 @@ def try_to_number_or_bool(value):
 
 
 class Tee(object):
-    """Created from snippets on stackoverflow"""
-
     def __init__(self, original_stdout, *files):
         self.files = files
         self.original_stdout = original_stdout
