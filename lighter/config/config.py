@@ -1,7 +1,10 @@
 import json
 import os
+import argparse
 
-from lighter.utils.misc import import_object, extract_named_args, try_to_number_or_bool, parse_args, DotDict
+from threading import RLock
+from lighter.utils.misc import import_object, \
+    extract_named_args, try_to_number_or_bool, parse_args, DotDict
 
 """
 © Michael Widrich, Markus Hofmarcher, Marius-Constantin Dinu 2019
@@ -9,6 +12,11 @@ from lighter.utils.misc import import_object, extract_named_args, try_to_number_
 Default configuration settings
 
 """
+
+
+DEFAULT_CONFIG_FILE = 'lighter/config/framework.config.json'
+default_config = None
+config_mutex = RLock()
 
 
 class Config(object):
@@ -118,3 +126,23 @@ class Config(object):
                     else:
                         raise Exception("Unsupported command line option (can only override dicts with 1 or 2 levels)")
                 self.override(name, value)
+
+
+def get_default_config():
+    global default_config
+    config_mutex.acquire()
+    try:
+        if default_config is None:
+            default_config = get_config(DEFAULT_CONFIG_FILE)
+        return default_config
+    finally:
+        config_mutex.release()
+
+
+def get_config(config_file: str = None):
+    if config_file is None:
+        parser = argparse.ArgumentParser()
+        parser.add_argument('--config', type=str, help='path to config file')
+        args = parser.parse_args()
+        config_file = args.config
+    return Config(config_file)

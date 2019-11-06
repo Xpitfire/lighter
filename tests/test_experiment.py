@@ -1,9 +1,9 @@
 import unittest
 
-from lighter.experiment import Experiment
+from lighter.experiment import SimpleExperiment
 
 
 class TestExperiment(unittest.TestCase):
     def test_execution_loop(self):
-        exp = Experiment()
+        exp = SimpleExperiment()
         self.assertTrue(exp())

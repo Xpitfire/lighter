@@ -1,1 +1,1 @@
-from lighter.config.config import Config
+from lighter.config.config import get_default_config, get_config, Config
