@@ -1,3 +1,4 @@
+include lighter/**.pyi
 prune examples
 prune tests
 prune runs
