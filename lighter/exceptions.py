@@ -1,0 +1,15 @@
+class AbortRunError(Exception):
+    pass
+
+
+class MultipleInstanceError(Exception):
+    def __init__(self):
+        super(MultipleInstanceError, self).__init__('It is not permitted to create multiple instances')
+
+
+class DependencyInjectionError(Exception):
+    def __init__(self):
+        super(DependencyInjectionError, self).__init__(
+            'Object is not callable due to unresolved variable dependency. '
+            'Verify your configurations and be aware that class ordering in configs matters, '
+            'due to instantiation order!')

@@ -102,3 +102,7 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+/examples/coco_looking/tmp_data/
+/examples/coco_looking/data/
+/examples/coco_looking/__MACOSX/
+/runs/

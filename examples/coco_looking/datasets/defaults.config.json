@@ -1,0 +1,7 @@
+{
+  "root_dir": "examples/coco_looking/",
+  "relative_dir": "data/extract/",
+  "source_file": "looking_labels.json",
+  "download_data": true,
+  "data_url": "https://www.dinu.at/wp-content/uploads/2019/11/COCO_Looking_Labels.zip"
+}
