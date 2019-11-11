@@ -4,7 +4,7 @@ import unittest
 from lighter.config import Config
 from lighter.context import Context
 from examples.coco_looking.experiments.defaults import SimpleExperiment
-from lighter.decorator import inject, config
+from lighter.decorator import inject, config, device
 from lighter.misc import create_template_file
 
 DEFAULT_CONFIG_FILE = 'examples/coco_looking/configs/coco_looking.config.json'
@@ -35,6 +35,7 @@ class TestExperiment(unittest.TestCase):
 
     def test_inject_decorator(self):
         class Demo:
+            @device(id='cuda:0')
             @config(path='tests/test_inject_decorator.json', group='modules')
             @inject(instance='test', name='demo_model')
             def __init__(self):
@@ -42,6 +43,7 @@ class TestExperiment(unittest.TestCase):
         Context.create()
         demo = Demo()
         self.assertTrue(demo.demo_model is not None)
+        self.assertTrue(demo.device is not None)
 
 
 if __name__ == '__main__':

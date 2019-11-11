@@ -6,7 +6,7 @@ class BaseWriter(SummaryWriter):
     """
     Base writer class descending from SummaryWriter (tensorboard) with injected 'context' instance.
     """
-    @context()
+    @context
     def __init__(self):
         super(BaseWriter, self).__init__()
         self.steps = 0

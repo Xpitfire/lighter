@@ -10,7 +10,7 @@ class BaseDataset(Dataset):
     """
     Dataset base class preparing the data.
     """
-    @context()
+    @context
     def __init__(self):
         pass
 

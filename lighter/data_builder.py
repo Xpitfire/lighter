@@ -5,8 +5,8 @@ class BaseDataBuilder(object):
     """
     Base class for building the data loaders with injected 'dataset' reference and application 'context'.
     """
-    @dataset()
-    @context()
+    @dataset
+    @context
     def __init__(self):
         pass
 

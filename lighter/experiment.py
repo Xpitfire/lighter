@@ -5,8 +5,8 @@ class BaseExperiment(object):
     """
     Experiment base class to create new algorithm runs.
     """
-    @device()
-    @experiment()
+    @device
+    @experiment
     def __init__(self):
         pass
 

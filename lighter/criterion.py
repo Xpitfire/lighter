@@ -7,6 +7,6 @@ class BaseCriterion(torch.nn.Module):
     """
     Criterion base class with injected application 'context'.
     """
-    @context()
+    @context
     def __init__(self):
         super(BaseCriterion, self).__init__()
