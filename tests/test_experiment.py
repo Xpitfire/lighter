@@ -4,6 +4,7 @@ import unittest
 from lighter.config import Config
 from lighter.context import Context
 from examples.coco_looking.experiments.defaults import SimpleExperiment
+from lighter.decorator import inject, config
 from lighter.misc import create_template_file
 
 DEFAULT_CONFIG_FILE = 'examples/coco_looking/configs/coco_looking.config.json'
@@ -31,6 +32,16 @@ class TestExperiment(unittest.TestCase):
         template = {'project': project_name}
         create_template_file(project_name, module, 'defaults.template', 'defaults.py', template)
         self.assertTrue(os.path.exists('tmp/models/defaults.py'))
+
+    def test_inject_decorator(self):
+        class Demo:
+            @config()
+            @inject(instance='test', name='demo_model')
+            def __init__(self):
+                pass
+        Context.create('tests/test_inject_decorator.json')
+        demo = Demo()
+        self.assertTrue(demo.demo_model is not None)
 
 
 if __name__ == '__main__':

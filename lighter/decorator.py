@@ -1,6 +1,7 @@
 import functools
 from lighter.config import Config
 from lighter.exceptions import DependencyInjectionError
+from lighter.misc import DotDict
 from lighter.registry import Registry
 
 
@@ -127,6 +128,26 @@ def config(path: str = None, group: str = None):
                         setattr(config, k, imported_config)
 
             setattr(instance, 'config', config)
+
+            result = func(*args, **kwargs)
+            return result
+        return wrapper
+    return decorator
+
+
+def inject(instance: str, name: str):
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            registry = Registry.get_instance()
+            obj_instance = args[0]
+
+            reg_instance, key = DotDict.resolve(registry.instances, instance)
+            value = getattr(reg_instance, key, None)
+            if value is None:
+                raise DependencyInjectionError()
+
+            setattr(obj_instance, name, value)
 
             result = func(*args, **kwargs)
             return result

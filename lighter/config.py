@@ -94,29 +94,22 @@ class Config(DotDict):
             if override_args is not None:
                 self.override_from_commandline(override_args)
 
-    @staticmethod
-    def resolve(parent, name):
-        groups = name.split('.')
-        for group in groups[:-1]:
-            parent = parent.get_value(group)
-        return parent, groups[-1]
-
     def set_value(self, name, value):
         """Sets the properties recursively according to a dot-separated reference.
         """
-        parent, name = Config.resolve(self, name)
+        parent, name = DotDict.resolve(self, name)
         override(parent, name, value)
 
     def has_value(self, name):
         """Checks properties recursively according to a dot-separated reference.
         """
-        parent, name = Config.resolve(self, name)
+        parent, name = DotDict.resolve(self, name)
         return hasattr(parent, name)
 
     def get_value(self, name, default=None):
         """Returns the properties recursively according to a dot-separated reference.
         """
-        parent, name = Config.resolve(self, name)
+        parent, name = DotDict.resolve(self, name)
         return getattr(parent, name, default)
 
     def initialize_from_json(self, nv_pairs=None):

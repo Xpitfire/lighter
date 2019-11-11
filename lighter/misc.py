@@ -44,6 +44,13 @@ class DotDict(dict):
     def has_value(self, name):
         return name in self
 
+    @staticmethod
+    def resolve(parent, name):
+        groups = name.split('.')
+        for group in groups[:-1]:
+            parent = parent.get_value(group)
+        return parent, groups[-1]
+
 
 def create_template_file(project_name, module_name, source_name, target_name, template):
     root = '/'.join(os.path.abspath(lighter.__file__).split('/')[:-1])
