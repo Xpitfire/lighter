@@ -123,7 +123,7 @@ By default the templates for a new project are using these names for dependency 
         "dataset": "type::$project.datasets.defaults.LookingDataset",
         "data_builder": "type::$project.data_builders.defaults.SimpleDataBuilder",
         "criterion": "type::$project.criterions.defaults.SimpleCriterion",
-        "model": "type::$project.models.defaults.AlexNetFeatureExtractionNetwork",
+        "model": "type::$project.models.defaults.Network",
         "writer": "type::$project.writers.defaults.SimpleWriter",
         "optimizer": "type::$project.optimizers.defaults.SimpleOptimizer",
         "metric": "type::$project.metrics.defaults.SimpleMetric",
@@ -137,7 +137,7 @@ But it is simply exchangeable by referring to a new name such as:
 {
     "modules": {
         ...
-        "other_model_name": "type::$project.models.defaults.AlexNetFeatureExtractionNetwork",
+        "other_model_name": "type::$project.models.defaults.Network",
         ...
     }
 }
