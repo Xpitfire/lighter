@@ -1,0 +1,12 @@
+{
+  "modules": {
+    "dataset": "type::minerl.datasets.defaults.LookingDataset",
+    "data_builder": "type::minerl.data_builders.defaults.SimpleDataBuilder",
+    "criterion": "type::minerl.criterions.defaults.SimpleCriterion",
+    "model": "type::minerl.models.defaults.Network",
+    "writer": "type::minerl.writers.defaults.SimpleWriter",
+    "optimizer": "type::minerl.optimizers.defaults.SimpleOptimizer",
+    "metric": "type::minerl.metrics.defaults.SimpleMetric",
+    "collectible": "type::minerl.collectibles.defaults.SimpleCollectible"
+  }
+}
