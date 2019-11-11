@@ -18,13 +18,17 @@ class Context(object):
         try:
             self.config = Config.create_instance(config_file)
             self.registry = Registry.get_instance()
-            self._instantiate_types()
+            self.instantiate_types(self.registry.types)
         finally:
             Context._mutex.release()
 
-    def _instantiate_types(self):
-        for name, class_ in self.registry.types.items():
-            self.registry.register_instance(name, class_())
+    def instantiate_types(self, types):
+        Context._mutex.acquire()
+        try:
+            for name, class_ in types.items():
+                self.registry.register_instance(name, class_())
+        finally:
+            Context._mutex.release()
 
     @staticmethod
     def get_instance():

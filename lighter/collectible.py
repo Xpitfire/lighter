@@ -1,4 +1,6 @@
 import numpy as np
+from lighter.config import Config
+
 from lighter.decorator import context
 from lighter.misc import DotDict
 
@@ -9,7 +11,7 @@ class BaseCollectible:
     Collectibles are passed a dictionary containing key-value pairs whereas the key
     determines the collection for adding values.
     """
-    @context
+    @context()
     def __init__(self):
         self.collection = DotDict()
 

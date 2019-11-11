@@ -4,6 +4,8 @@ import argparse
 from threading import RLock
 import logging
 
+import torch
+
 from lighter.loader import Loader
 from lighter.misc import extract_named_args, try_to_number_or_bool, DotDict
 from lighter.registry import Registry
@@ -20,9 +22,14 @@ def import_value_rec(name, value):
     if isinstance(value, str) and "type::" in value:
         try:
             value = Loader.get_instance().import_path(value[len("type::"):])
-            Registry.get_instance().register_type(name, value)
-        except ModuleNotFoundError:
-            logging.warning("Error while importing '{}'".format(value))
+            res = Registry.get_instance().contains_type(name)
+            # check if types where already registered
+            if not res:
+                # register type to registry
+                Registry.get_instance().register_type(name, value)
+
+        except ModuleNotFoundError as e:
+            logging.warning("Error while importing '{}' - {}".format(value, e))
     # import config if config:: reference was found in json
     elif isinstance(value, str) and "config::" in value:
         try:
@@ -30,8 +37,8 @@ def import_value_rec(name, value):
             conf = DotDict(conf)
             conf['config_path'] = value[len("config::"):]
             value = conf
-        except ModuleNotFoundError:
-            logging.warning("Error while importing '{}'".format(value))
+        except ModuleNotFoundError as e:
+            logging.warning("Error while importing '{}' - {}".format(value, e))
     # else regular set
     elif isinstance(value, dict):
         for k, v in value.items():
@@ -79,6 +86,9 @@ class Config(DotDict):
     def __init__(self, filename: str = None, override_args=None, **kwargs):
         """
         Create config object from json file.
+
+        ATTENTION: Only register types but never instantiate class objects in the config instance, since they might
+        require the config context before it has every been built!
 
         :param filename: optional;
             If passed read config from specified file, otherwise parse command line for config parameter and optionally
@@ -157,14 +167,21 @@ class Config(DotDict):
     @staticmethod
     def create_instance(config_file: str = None):
         """
-        Create default config instance.
+        Create default config instance. Loads the command line overridable config settings and
+        sets the default device instance.
         :param config_file: path to config file
         :return:
         """
         Config._mutex.acquire()
         try:
             if Config._instance is None:
-                Config._instance = Config.load(config_file, parse_args_fallback=True)
+                Config._instance, args = Config.load(config_file, parse_args_fallback=True)
+                # load default device
+                device = args.device
+                if torch.cuda.is_available() and 'cuda' in device:
+                    Config._instance.set_value('device.default', torch.device(device))
+                else:
+                    Config._instance.set_value('device.default', torch.device('cpu'))
             return Config._instance
         finally:
             Config._mutex.release()
@@ -187,11 +204,14 @@ class Config(DotDict):
         Loads a property file and allows to override arguments based on command line overrides.
         :param path: path to property file
         :param parse_args_fallback: fallback to --config if no path was specified.
-        :return: Config instance
+        :return: Config instance or Config with command line args tuple if parse_args_fallback is enabled
         """
-        if path is None and parse_args_fallback:
+        if parse_args_fallback:
             parser = argparse.ArgumentParser()
             parser.add_argument('--config', type=str, help='path to config file')
+            parser.add_argument('--device', type=str, default='cuda', help='set the used device')
             args = parser.parse_args()
-            path = args.config
+            if args.config is not None:
+                path = args.config
+            return Config(path), args
         return Config(path)

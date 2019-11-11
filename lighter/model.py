@@ -1,12 +1,13 @@
 import torch
 
-from lighter.decorator import context
+from lighter.decorator import context, device
 
 
 class BaseModule(torch.nn.Module):
     """
     Base model class descending from a PyTorch Module base class with injected 'context' instances.
     """
-    @context
+    @device()
+    @context()
     def __init__(self):
         super(BaseModule, self).__init__()

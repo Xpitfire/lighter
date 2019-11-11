@@ -1,11 +1,12 @@
-from lighter.decorator import experiment
+from lighter.decorator import experiment, device
 
 
 class BaseExperiment(object):
     """
     Experiment base class to create new algorithm runs.
     """
-    @experiment
+    @device()
+    @experiment()
     def __init__(self):
         pass
 
@@ -27,4 +28,10 @@ class BaseExperiment(object):
         raise NotImplementedError('BaseExperiment: No implementation found!')
 
     def run(self, *args, **kwargs):
+        """
+        Main run method usually containing the training loop.
+        :param args:
+        :param kwargs:
+        :return:
+        """
         raise NotImplementedError('BaseExperiment: No implementation found!')

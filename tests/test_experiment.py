@@ -35,11 +35,11 @@ class TestExperiment(unittest.TestCase):
 
     def test_inject_decorator(self):
         class Demo:
-            @config()
+            @config(path='tests/test_inject_decorator.json', group='modules')
             @inject(instance='test', name='demo_model')
             def __init__(self):
                 pass
-        Context.create('tests/test_inject_decorator.json')
+        Context.create()
         demo = Demo()
         self.assertTrue(demo.demo_model is not None)
 

@@ -17,7 +17,7 @@ class SimpleExperiment(BaseExperiment):
     def train(self):
         self.model.train()
         for i, (x, y) in enumerate(self.train_loader):
-            x, y = x.to(self.config.model.device), y.to(self.config.model.device)
+            x, y = x.to(self.device), y.to(self.device)
             self.optimizer.zero_grad()
             pred = self.model(x)
             loss = self.criterion(pred, y)
@@ -31,7 +31,7 @@ class SimpleExperiment(BaseExperiment):
         self.model.eval()
         with torch.no_grad():
             for i, (x, y) in enumerate(self.val_loader):
-                x, y = x.to(self.config.model.device), y.to(self.config.model.device)
+                x, y = x.to(self.device), y.to(self.device)
                 pred = self.model(x)
                 loss = self.criterion(pred, y)
                 self.collectible.update(**{'loss': loss.cpu()})

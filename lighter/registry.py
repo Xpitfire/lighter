@@ -1,6 +1,13 @@
 from threading import RLock
 
+from enum import Enum
+
 from lighter.misc import DotDict
+
+
+class RegistryOption(Enum):
+    Types = 0
+    Instances = 1
 
 
 class Registry(DotDict):
@@ -29,6 +36,12 @@ class Registry(DotDict):
 
     def unregister_instance(self, name):
         del self.instances[name]
+
+    def contains_type(self, name):
+        return name in self.types.keys()
+
+    def contains_instance(self, name):
+        return name in self.instances.keys()
 
     @staticmethod
     def get_instance():

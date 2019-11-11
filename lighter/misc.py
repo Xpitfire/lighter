@@ -46,9 +46,13 @@ class DotDict(dict):
 
     @staticmethod
     def resolve(parent, name):
+        prev_parent = parent
         groups = name.split('.')
         for group in groups[:-1]:
             parent = parent.get_value(group)
+            if parent is None:
+                parent = DotDict()
+                setattr(prev_parent, group, parent)
         return parent, groups[-1]
 
 

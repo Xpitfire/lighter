@@ -1,21 +1,21 @@
 import functools
+
+import inspect
+import torch
+
 from lighter.config import Config
 from lighter.exceptions import DependencyInjectionError
 from lighter.misc import DotDict
-from lighter.registry import Registry
+from lighter.registry import Registry, RegistryOption
 
 
-def experiment(func, injectables: list = None):
+def wrapper_delegate(func, injectables):
     """
-    Experiment decorator to inject multiple values at once.
+    Delegate wrapper to inject values.
     :param func: original decorated function
-    :param injectables: list of values to inject
+    :param injectables: name of the value to inject
     :return:
     """
-    if injectables is None:
-        injectables = ['model', 'dataset', 'data_builder', 'optimizer',
-                       'collectible', 'criterion', 'metric', 'writer']
-
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         config = Config.get_instance()
@@ -31,76 +31,85 @@ def experiment(func, injectables: list = None):
                 raise DependencyInjectionError()
             setattr(instance, name, value)
 
-        result = func(*args, **kwargs)
-        return result
+        return func(*args, **kwargs)
     return wrapper
 
 
-def wrapper_delegate(func, name):
+def experiment(injectables: list = None):
     """
-    Delegate wrapper to inject values.
-    :param func: original decorated function
-    :param name: name of the value to inject
+    Experiment decorator to inject multiple values at once.
+    :param injectables: list of values to inject
     :return:
     """
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        registry = Registry.get_instance()
-        instance = args[0]
+    if injectables is None:
+        injectables = ['model', 'dataset', 'data_builder', 'optimizer',
+                       'collectible', 'criterion', 'metric', 'writer']
 
-        value = getattr(registry.instances, name, None)
-        if value is None:
-            raise DependencyInjectionError()
-
-        setattr(instance, name, value)
-
-        result = func(*args, **kwargs)
-        return result
-    return wrapper
+    def decorator(func):
+        return wrapper_delegate(func, injectables)
+    return decorator
 
 
-def dataset(func, name: str = None):
+def dataset(names: list = None):
     """
     Dataset decorator to inject the default dataset instance.
-    :param func: original decorated function
-    :param name: name of the injection variable as specified in the config
+    :param names: names of the injection variable as specified in the config
     :return:
     """
-    if name is None:
-        name = 'dataset'
-    return wrapper_delegate(func, name)
+    if names is None:
+        names = ['dataset']
+
+    def decorator(func):
+        return wrapper_delegate(func, names)
+    return decorator
 
 
-def model(func, name: str = None):
+def model(names: list = None):
     """
     Model decorator to inject the default model instance.
-    :param func: original decorated function
-    :param name: name of the injection variable as specified in the config
+    :param names: names of the injection variable as specified in the config
     :return:
     """
-    if name is None:
-        name = 'model'
-    return wrapper_delegate(func, name)
+    if names is None:
+        names = ['model']
+
+    def decorator(func):
+        return wrapper_delegate(func, names)
+    return decorator
 
 
-def context(func):
+def strategy(names: list = None):
+    """
+    Strategy decorator to inject the default training strategy instance.
+    :param names: names of the injection variable as specified in the config
+    :return:
+    """
+    if names is None:
+        names = ['strategy']
+
+    def decorator(func):
+        return wrapper_delegate(func, names)
+    return decorator
+
+
+def context():
     """
     Context decorator to inject the default context instance.
-    :param func: original decorated function
     :return:
     """
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        config = Config.get_instance()
-        registry = Registry.get_instance()
-        instance = args[0]
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            config = Config.get_instance()
+            registry = Registry.get_instance()
+            instance = args[0]
 
-        setattr(instance, 'config', config)
-        setattr(instance, 'registry', registry)
+            setattr(instance, 'config', config)
+            setattr(instance, 'registry', registry)
 
-        result = func(*args, **kwargs)
-        return result
-    return wrapper
+            return func(*args, **kwargs)
+        return wrapper
+    return decorator
 
 
 def config(path: str = None, group: str = None):
@@ -116,9 +125,9 @@ def config(path: str = None, group: str = None):
     def decorator(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
+            config = Config.get_instance()
             instance = args[0]
 
-            config = Config.get_instance()
             if path is not None:
                 imported_config = Config.load(path=path)
                 if group is not None:
@@ -129,27 +138,87 @@ def config(path: str = None, group: str = None):
 
             setattr(instance, 'config', config)
 
-            result = func(*args, **kwargs)
-            return result
+            return func(*args, **kwargs)
         return wrapper
     return decorator
 
 
-def inject(instance: str, name: str):
+def search_and_load_type(instance):
+    registry = Registry.get_instance()
+    reg_instance, key = DotDict.resolve(registry.types, instance)
+    class_ = getattr(reg_instance, key, None)
+    if class_ is None or not inspect.isclass(class_):
+        raise DependencyInjectionError()
+    new_ = class_()
+    registry.register_instance(key, new_)
+    return new_
+
+
+def inject(instance: str, name: str, type: RegistryOption = RegistryOption.Instances):
+    """
+    Injects a named variable of any given instance into the decorated object instance.
+    :param instance: Source instance available in the registry.
+    :param name: Target name of the variable to inject.
+    :param type: Option for the registry lookup.
+    :return:
+    """
     def decorator(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             registry = Registry.get_instance()
             obj_instance = args[0]
 
-            reg_instance, key = DotDict.resolve(registry.instances, instance)
-            value = getattr(reg_instance, key, None)
+            value = None
+            # if instances option selected lookup attribute or load if not already instantiated
+            if type == RegistryOption.Instances:
+                reg_instance, key = DotDict.resolve(registry.instances, instance)
+                value = getattr(reg_instance, key, None)
+                if value is None:
+                    value = search_and_load_type(instance)
+            # otherwise if types then return simple type
+            elif type == RegistryOption.Types:
+                reg_instance, key = DotDict.resolve(registry.types, instance)
+                value = getattr(reg_instance, key, None)
+
+            # if value is still None then through error, since it was never registered or failed to load
             if value is None:
                 raise DependencyInjectionError()
 
             setattr(obj_instance, name, value)
 
-            result = func(*args, **kwargs)
-            return result
+            return func(*args, **kwargs)
+        return wrapper
+    return decorator
+
+
+def device(id: str = None, group: str = 'device.default', name: str = 'device'):
+    """
+    Injects a device info into the current object instance.
+    :param id: device id if pre-specified
+    :param group: group path for the config
+    :param name: device name for injection
+    :return:
+    """
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            config = Config.get_instance()
+            obj_instance = args[0]
+
+            # update device according to id
+            if id is not None:
+                if not torch.cuda.is_available() or 'cpu' in id:
+                    config.set_value(group, torch.device('cpu'))
+                else:
+                    config.set_value(group, torch.device(id))
+
+            value = config.get_value(group)
+            # if never set but called, then through exception
+            if value is None:
+                raise DependencyInjectionError()
+
+            setattr(obj_instance, name, value)
+
+            return func(*args, **kwargs)
         return wrapper
     return decorator
