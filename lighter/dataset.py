@@ -6,12 +6,21 @@ import shutil
 
 
 class BaseDataset(Dataset):
+    """
+    Dataset base class preparing the data.
+    """
     @context
     def __init__(self):
         pass
 
     @staticmethod
     def download_zip(url, dest_path):
+        """
+        Downloads and extracts a zip-file to the destination path.
+        :param url: url to download zip file.
+        :param dest_path: destination path to extract the files
+        :return:
+        """
         tmp_path = 'tmp'
         if not os.path.exists(tmp_path):
             os.makedirs(tmp_path)

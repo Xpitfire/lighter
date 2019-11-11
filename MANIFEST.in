@@ -1,4 +1,6 @@
-include lighter/**.pyi
+include lighter/**/*.pyi
+global-include *.json
+global-include *.template
 prune examples
 prune tests
 prune runs

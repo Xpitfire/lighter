@@ -1,0 +1,6 @@
+{
+  "batch_size": 16,
+  "validation_split": 0.2,
+  "shuffle_dataset": true,
+  "random_seed": null
+}

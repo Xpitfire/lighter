@@ -5,9 +5,15 @@ from lighter.misc import DotDict
 
 class Registry(DotDict):
     _instance = None
+    # mutex for threadsafe usage
     _mutex = RLock()
 
     def __init__(self, **kwargs):
+        """
+        Creates a new Registry object storing and handling all types and instances imported
+        from configs.
+        :param kwargs:
+        """
         super(Registry, self).__init__(**kwargs)
         self.instances = DotDict()
         self.types = DotDict()

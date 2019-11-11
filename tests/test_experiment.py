@@ -1,9 +1,10 @@
+import os
 import unittest
 
 from lighter.config import Config
 from lighter.context import Context
 from examples.coco_looking.experiments.defaults import SimpleExperiment
-
+from lighter.misc import create_template_file
 
 DEFAULT_CONFIG_FILE = 'examples/coco_looking/configs/coco_looking.config.json'
 
@@ -20,10 +21,16 @@ class TestExperiment(unittest.TestCase):
         exp = SimpleExperiment()
         self.assertTrue(exp.model is not None)
 
-    def test_execution_loop(self):
+    def test_experiment_config_injection(self):
         exp = SimpleExperiment()
-        exp()
-        self.assertTrue(True)
+        self.assertTrue(exp.config.experiment.epochs == 50)
+
+    def test_package_resource_access(self):
+        project_name = 'tmp'
+        module = 'models'
+        template = {'project': project_name}
+        create_template_file(project_name, module, 'defaults.template', 'defaults.py', template)
+        self.assertTrue(os.path.exists('tmp/models/defaults.py'))
 
 
 if __name__ == '__main__':

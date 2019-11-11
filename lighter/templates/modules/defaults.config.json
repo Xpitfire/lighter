@@ -1,0 +1,12 @@
+{
+  "modules": {
+    "dataset": "type::$project.datasets.defaults.LookingDataset",
+    "data_builder": "type::$project.data_builders.defaults.SimpleDataBuilder",
+    "criterion": "type::$project.criterions.defaults.SimpleCriterion",
+    "model": "type::$project.models.defaults.AlexNetFeatureExtractionNetwork",
+    "writer": "type::$project.writers.defaults.SimpleWriter",
+    "optimizer": "type::$project.optimizers.defaults.SimpleOptimizer",
+    "metric": "type::$project.metrics.defaults.SimpleMetric",
+    "collectible": "type::$project.collectibles.defaults.SimpleCollectible"
+  }
+}

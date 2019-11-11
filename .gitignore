@@ -106,3 +106,4 @@ venv.bak/
 /examples/coco_looking/data/
 /examples/coco_looking/__MACOSX/
 /runs/
+/tmp/

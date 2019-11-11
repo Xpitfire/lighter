@@ -1,10 +1,10 @@
 {
-  "dataset": "class::examples.coco_looking.datasets.defaults.LookingDataset",
-  "data_builder": "class::examples.coco_looking.data_builders.defaults.SimpleDataBuilder",
-  "criterion": "class::examples.coco_looking.criterions.defaults.SimpleCriterion",
-  "model": "class::examples.coco_looking.models.defaults.AlexNetFeatureExtractionNetwork",
-  "writer": "class::examples.coco_looking.writers.defaults.SimpleWriter",
-  "optimizer": "class::examples.coco_looking.optimizers.defaults.SimpleOptimizer",
-  "metric": "class::examples.coco_looking.metrics.defaults.SimpleMetric",
-  "collectible": "class::examples.coco_looking.collectibles.defaults.SimpleCollectible"
+  "dataset": "type::examples.coco_looking.datasets.defaults.LookingDataset",
+  "data_builder": "type::examples.coco_looking.data_builders.defaults.SimpleDataBuilder",
+  "criterion": "type::examples.coco_looking.criterions.defaults.SimpleCriterion",
+  "model": "type::examples.coco_looking.models.defaults.AlexNetFeatureExtractionNetwork",
+  "writer": "type::examples.coco_looking.writers.defaults.SimpleWriter",
+  "optimizer": "type::examples.coco_looking.optimizers.defaults.SimpleOptimizer",
+  "metric": "type::examples.coco_looking.metrics.defaults.SimpleMetric",
+  "collectible": "type::examples.coco_looking.collectibles.defaults.SimpleCollectible"
 }

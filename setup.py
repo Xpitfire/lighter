@@ -11,21 +11,23 @@ install_requires = requirements["install"]
 
 setup(
     # Metadata
-    name="lighter",
+    name="torch-lighter",
     author="Marius-Constantin Dinu",
-    version="0.0.1",
+    version="0.0.1.post1",
     author_email="dinu.marius-constantin@hotmail.com",
     url="https://github.com/Xpitfire/lighter",
-    description="Lightweight reinforcement learning framework for PyTorch",
+    scripts=['bin/lighter-init'],
+    description="Lightweight extension for torch to speed-up prototyping.",
     long_description=readme,
     long_description_content_type="text/markdown",
     # Package info
     packages=find_packages(),
     zip_safe=True,
     install_requires=install_requires,
+    include_package_data=True,
     classifiers=[
         "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: BSD 3-Clause License",
+        "License :: OSI Approved :: BSD License",
         "Operating System :: OS Independent"
     ]
 )

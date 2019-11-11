@@ -1,9 +1,7 @@
 import json
 import os
 import argparse
-
 from threading import RLock
-
 import logging
 
 from lighter.loader import Loader
@@ -12,12 +10,20 @@ from lighter.registry import Registry
 
 
 def import_value_rec(name, value):
-    if isinstance(value, str) and "class::" in value:
+    """
+    Imports configs or classes to the current config instance.
+    :param name: property name
+    :param value: property value
+    :return: value instance of the replaced property
+    """
+    # import classes if type:: reference was found in json
+    if isinstance(value, str) and "type::" in value:
         try:
-            value = Loader.get_instance().import_path(value[len("class::"):])
+            value = Loader.get_instance().import_path(value[len("type::"):])
             Registry.get_instance().register_type(name, value)
         except ModuleNotFoundError:
             logging.warning("Error while importing '{}'".format(value))
+    # import config if config:: reference was found in json
     elif isinstance(value, str) and "config::" in value:
         try:
             conf = Config(value[len("config::"):])
@@ -26,6 +32,7 @@ def import_value_rec(name, value):
             value = conf
         except ModuleNotFoundError:
             logging.warning("Error while importing '{}'".format(value))
+    # else regular set
     elif isinstance(value, dict):
         for k, v in value.items():
             value[k] = import_value_rec(k, v)
@@ -35,16 +42,26 @@ def import_value_rec(name, value):
 
 
 def override(parent, name, value):
+    """
+    Overrides a config key.
+    :param parent: Parent dictionary instance
+    :param name: name of the property
+    :param value: value for the property
+    :return:
+    """
     if value is not None:
+        # import key-values into the current property instance
         if isinstance(value, str) and "import::" in value:
             conf = Config(value[len("import::"):])
             for k, v in DotDict(conf).items():
                 setattr(parent, k, v)
                 logging.info("Config: {}={}".format(k, getattr(parent, k)))
+        # decent down the dictionary instance
         elif isinstance(value, dict):
             dict_ = DotDict(value)
             for k, v in dict_.copy().items():
                 override(dict_, k, v)
+                # remove old import:: reference after import
                 if isinstance(v, str) and "import::" in v:
                     del dict_[k]
             setattr(parent, name, dict_)
@@ -56,14 +73,17 @@ def override(parent, name, value):
 
 class Config(DotDict):
     _instance = None
+    # thread save lock to ensure single instance creation for the default config
     _mutex = RLock()
 
     def __init__(self, filename: str = None, override_args=None, **kwargs):
-        """Create config object from json file.
+        """
+        Create config object from json file.
 
-        filename : optional;
+        :param filename: optional;
             If passed read config from specified file, otherwise parse command line for config parameter and optionally
             override arguments.
+        :param override_args: args to override the current properties
         """
         super(Config, self).__init__(**kwargs)
         # Read config and override with args if passed
@@ -82,14 +102,20 @@ class Config(DotDict):
         return parent, groups[-1]
 
     def set_value(self, name, value):
+        """Sets the properties recursively according to a dot-separated reference.
+        """
         parent, name = Config.resolve(self, name)
         override(parent, name, value)
 
     def has_value(self, name):
+        """Checks properties recursively according to a dot-separated reference.
+        """
         parent, name = Config.resolve(self, name)
         return hasattr(parent, name)
 
     def get_value(self, name, default=None):
+        """Returns the properties recursively according to a dot-separated reference.
+        """
         parent, name = Config.resolve(self, name)
         return getattr(parent, name, default)
 
@@ -137,6 +163,11 @@ class Config(DotDict):
 
     @staticmethod
     def create_instance(config_file: str = None):
+        """
+        Create default config instance.
+        :param config_file: path to config file
+        :return:
+        """
         Config._mutex.acquire()
         try:
             if Config._instance is None:
@@ -147,10 +178,24 @@ class Config(DotDict):
 
     @staticmethod
     def get_instance():
-        return Config._instance
+        """
+        Return default config instance.
+        :return:
+        """
+        Config._mutex.acquire()
+        try:
+            return Config._instance
+        finally:
+            Config._mutex.release()
 
     @staticmethod
     def load(path: str = None, parse_args_fallback: bool = False):
+        """
+        Loads a property file and allows to override arguments based on command line overrides.
+        :param path: path to property file
+        :param parse_args_fallback: fallback to --config if no path was specified.
+        :return: Config instance
+        """
         if path is None and parse_args_fallback:
             parser = argparse.ArgumentParser()
             parser.add_argument('--config', type=str, help='path to config file')

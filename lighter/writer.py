@@ -3,6 +3,9 @@ from lighter.decorator import context
 
 
 class BaseWriter(SummaryWriter):
+    """
+    Base writer class descending from SummaryWriter (tensorboard) with injected 'context' instance.
+    """
     @context
     def __init__(self):
         super(BaseWriter, self).__init__()

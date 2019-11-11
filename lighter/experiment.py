@@ -13,9 +13,17 @@ class BaseExperiment(object):
         self.run(*args, **kwargs)
 
     def eval(self):
+        """
+        Evaluates an experiment.
+        :return:
+        """
         raise NotImplementedError('BaseExperiment: No implementation found!')
 
     def train(self):
+        """
+        Training instance for the experiment run.
+        :return:
+        """
         raise NotImplementedError('BaseExperiment: No implementation found!')
 
     def run(self, *args, **kwargs):

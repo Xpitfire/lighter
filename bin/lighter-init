@@ -1,0 +1,35 @@
+#!/usr/bin/env python
+
+import os
+import sys
+
+from lighter.misc import create_template_file, copy_file, create_init
+
+project_name = sys.argv[1]
+
+# create paths
+modules = ['collectibles', 'criterions', 'data_builders', 'datasets', 'experiments',
+           'metrics', 'models', 'modules', 'optimizers', 'writers']
+
+for module in modules:
+    path = os.path.join(project_name, module)
+    os.makedirs(path)
+
+# copy and prepare templates
+template = {'project': project_name}
+
+
+modules = ['collectibles', 'criterions', 'data_builders', 'datasets', 'experiments',
+           'metrics', 'models', 'optimizers', 'writers']
+
+# handle python and config templates
+for module in modules:
+    create_template_file(project_name, module, 'defaults.template', 'defaults.py', template)
+    copy_file(project_name, module, 'defaults.config.json', 'defaults.config.json')
+    create_init(project_name, module)
+
+# create root dir init
+create_init(project_name)
+
+# create modules config file
+create_template_file(project_name, 'modules', 'defaults.config.json', 'defaults.config.json', template)

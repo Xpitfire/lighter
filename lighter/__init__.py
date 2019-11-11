@@ -8,7 +8,6 @@ from . import exceptions
 from . import experiment
 from . import loader
 from . import metric
-from . import misc
 from . import model
 from . import optimizer
 from . import registry

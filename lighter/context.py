@@ -5,10 +5,15 @@ from lighter.registry import Registry
 
 
 class Context(object):
+    # mutex to protect context from multiprocess concurrent access
     _mutex = RLock()
     _instance = None
 
     def __init__(self, config_file: str):
+        """
+        Create a context object and registers configs, types and instances of the defined modules.
+        :param config_file: default config file
+        """
         Context._mutex.acquire()
         try:
             self.config = Config.create_instance(config_file)
@@ -23,10 +28,19 @@ class Context(object):
 
     @staticmethod
     def get_instance():
-        return Context._instance
+        Context._mutex.acquire()
+        try:
+            return Context._instance
+        finally:
+            Context._mutex.release()
 
     @staticmethod
     def create(config_file: str = None):
+        """
+        Create application context threadsafe.
+        :param config_file:
+        :return:
+        """
         Context._mutex.acquire()
         try:
             if Context._instance is None:
