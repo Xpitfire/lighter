@@ -3,11 +3,17 @@
 Lightweight extension for torch to speed up project prototyping and enable dependency injection of object instances.
 This framework includes a setup script to get started with a pre-defined project structure and the documentation offers examples and an overview of the initial usage.
 
+## Install
+
+```shell script
+$> pip install torch-lighter
+```
+
 ## Description
 
 Create new project structure:
 ```shell script
-> lighter-init <project-name>
+$> lighter-init <project-name>
 ``` 
 
 ### Structure overview
