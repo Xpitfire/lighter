@@ -5,10 +5,10 @@ from lighter.decorator import config
 from lighter.model import BaseModule
 
 
-class AlexNetFeatureExtractionNetwork(BaseModule):
+class AlexNetFeatureExtractionModel(BaseModule):
     @config(path='examples/coco_looking/models/defaults.config.json', group='model')
     def __init__(self):
-        super(AlexNetFeatureExtractionNetwork, self).__init__()
+        super(AlexNetFeatureExtractionModel, self).__init__()
         self.alexnet = models.alexnet(pretrained=self.config.model.pretrained).to(self.device)
         for param in self.alexnet.parameters():
             param.requires_grad = not self.config.model.freeze_pretrained

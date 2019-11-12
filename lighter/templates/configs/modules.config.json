@@ -1,0 +1,13 @@
+{
+  "modules": {
+    "transform": "type::$project.transforms.defaults.Transform",
+    "dataset": "type::$project.datasets.defaults.Dataset",
+    "data_builder": "type::$project.data_builders.defaults.DataBuilder",
+    "criterion": "type::$project.criterions.defaults.Criterion",
+    "model": "type::$project.models.defaults.Model",
+    "writer": "type::$project.writers.defaults.Writer",
+    "optimizer": "type::$project.optimizers.defaults.Optimizer",
+    "metric": "type::$project.metrics.defaults.Metric",
+    "collectible": "type::$project.collectibles.defaults.Collectible"
+  }
+}

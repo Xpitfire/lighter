@@ -83,7 +83,7 @@ def BACC(target, prediction, eps=1e-7):
     return bacc
 
 
-class SimpleMetric(BaseMetric):
+class Metric(BaseMetric):
     def __call__(self, pred, target):
         return {
             'acc': ACC(target, pred),

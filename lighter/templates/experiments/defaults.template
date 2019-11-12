@@ -8,10 +8,10 @@ from lighter.decorator import config
 from lighter.experiment import BaseExperiment
 
 
-class SimpleExperiment(BaseExperiment):
+class Experiment(BaseExperiment):
     @config(path='$project/experiments/defaults.config.json', group='experiment')
     def __init__(self):
-        super(SimpleExperiment, self).__init__()
+        super(Experiment, self).__init__()
         self.train_loader, self.val_loader = self.data_builder.loader()
 
     def train(self):

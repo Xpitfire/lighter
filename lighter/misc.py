@@ -56,8 +56,12 @@ class DotDict(dict):
         return parent, groups[-1]
 
 
+def get_lighter_root():
+    return '/'.join(os.path.abspath(lighter.__file__).split('/')[:-1])
+
+
 def create_template_file(project_name, module_name, source_name, target_name, template):
-    root = '/'.join(os.path.abspath(lighter.__file__).split('/')[:-1])
+    root = get_lighter_root()
     template_file_name = os.path.join(root, 'templates/{}/{}'.format(module_name, source_name))
     if not os.path.exists(template_file_name):
         return
@@ -73,7 +77,7 @@ def create_template_file(project_name, module_name, source_name, target_name, te
 
 
 def copy_file(project_name, module_name, source_name, target_name):
-    root = '/'.join(os.path.abspath(lighter.__file__).split('/')[:-1])
+    root = get_lighter_root()
     template_file_name = os.path.join(root, 'templates/{}/{}'.format(module_name, source_name))
     if not os.path.exists(template_file_name):
         return

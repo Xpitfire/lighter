@@ -10,11 +10,10 @@ from lighter.dataset import BaseDataset
 from lighter.decorator import config
 
 
-class LookingDataset(BaseDataset):
+class Dataset(BaseDataset):
     @config(path='$project/datasets/defaults.config.json', group='dataset')
-    def __init__(self, transform=None):
-        super(LookingDataset, self).__init__()
-        self.transform = transform
+    def __init__(self):
+        super(Dataset, self).__init__()
         self.root_dir = self.config.dataset.root_dir
         self.relative_dir = self.config.dataset.relative_dir
         self.source_file = self.config.dataset.source_file

@@ -1,10 +1,11 @@
 {
+  "transform": "type::examples.coco_looking.transforms.defaults.Transform",
   "dataset": "type::examples.coco_looking.datasets.defaults.LookingDataset",
-  "data_builder": "type::examples.coco_looking.data_builders.defaults.SimpleDataBuilder",
-  "criterion": "type::examples.coco_looking.criterions.defaults.SimpleCriterion",
-  "model": "type::examples.coco_looking.models.defaults.AlexNetFeatureExtractionNetwork",
-  "writer": "type::examples.coco_looking.writers.defaults.SimpleWriter",
-  "optimizer": "type::examples.coco_looking.optimizers.defaults.SimpleOptimizer",
-  "metric": "type::examples.coco_looking.metrics.defaults.SimpleMetric",
-  "collectible": "type::examples.coco_looking.collectibles.defaults.SimpleCollectible"
+  "data_builder": "type::examples.coco_looking.data_builders.defaults.DataBuilder",
+  "criterion": "type::examples.coco_looking.criterions.defaults.Criterion",
+  "model": "type::examples.coco_looking.models.defaults.AlexNetFeatureExtractionModel",
+  "writer": "type::examples.coco_looking.writers.defaults.Writer",
+  "optimizer": "type::examples.coco_looking.optimizers.defaults.Optimizer",
+  "metric": "type::examples.coco_looking.metrics.defaults.Metric",
+  "collectible": "type::examples.coco_looking.collectibles.defaults.Collectible"
 }

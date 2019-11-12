@@ -53,6 +53,23 @@ def experiment(func=None, injectables: list = None):
     return wrapper_delegate(func, injectables)
 
 
+def transform(func=None, names: list = None):
+    """
+    Transform decorator to inject the default transform instance.
+    :param func: original function instance
+    :param names: names of the injection variable as specified in the config
+    :return:
+    """
+    if names is None:
+        names = ['transform']
+
+    if not func:
+        # workaround to enable empty decorator
+        return functools.partial(dataset, names=names)
+
+    return wrapper_delegate(func, names)
+
+
 def dataset(func=None, names: list = None):
     """
     Dataset decorator to inject the default dataset instance.

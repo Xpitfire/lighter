@@ -1,5 +1,5 @@
 from lighter.collectible import BaseCollectible
 
 
-class SimpleCollectible(BaseCollectible):
+class Collectible(BaseCollectible):
     pass
