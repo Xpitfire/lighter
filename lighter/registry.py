@@ -1,7 +1,5 @@
 from threading import RLock
-
 from enum import Enum
-
 from lighter.misc import DotDict
 
 
@@ -10,7 +8,7 @@ class RegistryOption(Enum):
     Instances = 1
 
 
-class Registry(DotDict):
+class Registry(object):
     _instance = None
     # mutex for threadsafe usage
     _mutex = RLock()
@@ -44,7 +42,7 @@ class Registry(DotDict):
         return name in self.instances.keys()
 
     @staticmethod
-    def get_instance():
+    def get_instance() -> "Registry":
         Registry._mutex.acquire()
         try:
             if Registry._instance is None:

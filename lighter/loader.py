@@ -51,7 +51,7 @@ class Loader(object):
         return type_
 
     @staticmethod
-    def get_instance():
+    def get_instance() -> "Loader":
         Loader._mutex.acquire()
         try:
             if Loader._instance is None:

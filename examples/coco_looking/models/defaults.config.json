@@ -2,5 +2,6 @@
   "device": "cpu",
   "output": 1,
   "preetrained": true,
-  "freeze_pretrained": true
+  "freeze_pretrained": true,
+  "hidden_units": 100
 }

@@ -4,8 +4,9 @@ import unittest
 from lighter.config import Config
 from lighter.context import Context
 from examples.coco_looking.experiments.defaults import SimpleExperiment
-from lighter.decorator import inject, config, device
+from lighter.decorator import inject, config, device, context, search, strategy
 from lighter.misc import create_template_file
+from lighter.parameter import GridParameter
 
 DEFAULT_CONFIG_FILE = 'examples/coco_looking/configs/coco_looking.config.json'
 
@@ -44,6 +45,32 @@ class TestExperiment(unittest.TestCase):
         demo = Demo()
         self.assertTrue(demo.demo_model is not None)
         self.assertTrue(demo.device is not None)
+
+    def test_search_iterator(self):
+        assert_true = self.assertTrue
+
+        class SearchExperiment:
+            @context
+            @search(params=[('demo', GridParameter(ref='test', min=1, max=10))])
+            def __init__(self):
+                self.config.set_value('test', 2)
+
+            def run(self):
+                assert_true(self.search.demo.value == 2)
+                for i, param in enumerate(self.search.demo):
+                    if i == 0:
+                        assert_true(param == 1)
+                assert_true(self.search.demo.value == 10)
+        exp = SearchExperiment()
+        exp.run()
+
+    def test_strategy(self):
+        class Experiment:
+            @strategy(group='default', config='examples/coco_looking/configs/modules.config.json')
+            def __init__(self):
+                pass
+        exp = Experiment()
+        self.assertTrue(exp.model is not None)
 
 
 if __name__ == '__main__':

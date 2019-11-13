@@ -2,6 +2,7 @@ from threading import RLock
 
 from lighter.config import Config
 from lighter.registry import Registry
+from lighter.search import ParameterSearch
 
 
 class Context(object):
@@ -19,6 +20,7 @@ class Context(object):
             self.config = Config.create_instance(config_file)
             self.registry = Registry.get_instance()
             self.instantiate_types(self.registry.types)
+            self.search = ParameterSearch.get_instance()
         finally:
             Context._mutex.release()
 
@@ -31,7 +33,7 @@ class Context(object):
             Context._mutex.release()
 
     @staticmethod
-    def get_instance():
+    def get_instance() -> "Context":
         Context._mutex.acquire()
         try:
             return Context._instance

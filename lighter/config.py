@@ -165,7 +165,7 @@ class Config(DotDict):
                 override(self, name, value)
 
     @staticmethod
-    def create_instance(config_file: str = None):
+    def create_instance(config_file: str = None) -> "Config":
         """
         Create default config instance. Loads the command line overridable config settings and
         sets the default device instance.
@@ -187,7 +187,7 @@ class Config(DotDict):
             Config._mutex.release()
 
     @staticmethod
-    def get_instance():
+    def get_instance() -> "Config":
         """
         Return default config instance.
         :return:

@@ -4,8 +4,9 @@ import numpy as np
 from tqdm import tqdm
 from datetime import datetime
 
-from lighter.decorator import config
+from lighter.decorator import config, search, strategy
 from lighter.experiment import BaseExperiment
+from lighter.parameter import GridParameter
 
 
 class Experiment(BaseExperiment):
@@ -58,3 +59,20 @@ class Experiment(BaseExperiment):
             self.eval()
             self.checkpoint(epoch)
             self.collectible.reset()
+
+
+class SearchExperiment(Experiment):
+    @search([('batch_size', GridParameter(ref='data_builder.batch_size', min=16, max=128, step=32))])
+    def run(self, *args, **kwargs):
+        # test with different batch_size parameters
+        for _ in self.search.params:
+            try:
+                super().run(*args, **kwargs)
+            except Exception as e:
+                print('Experiment failed and skipped: {}'.format(e))
+
+
+class TrainingStrategyExperiment(object):
+    @strategy
+    def __init__(self):
+        pass

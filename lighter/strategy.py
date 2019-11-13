@@ -1,9 +1,8 @@
-from lighter.decorator import strategy, device
+from lighter.decorator import device, context
 
 
-class TrainingStrategy(object):
+class BaseTrainingStrategy(object):
     @device
-    @strategy
+    @context
     def __init__(self):
-        self.lr_scheduler = None
-        self.patience = None
+        pass

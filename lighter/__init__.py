@@ -12,3 +12,7 @@ from . import model
 from . import optimizer
 from . import registry
 from . import writer
+from . import transform
+from . import strategy
+from . import search
+from . import parameter

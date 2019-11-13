@@ -1,12 +1,51 @@
 import functools
-
+import logging
 import inspect
 import torch
+from typing import Tuple, List
 
 from lighter.config import Config
+from lighter.context import Context
 from lighter.exceptions import DependencyInjectionError
 from lighter.misc import DotDict
 from lighter.registry import Registry, RegistryOption
+from lighter.search import ParameterSearch
+from lighter.parameter import Parameter
+
+
+def handle_injections(args, injectables):
+    config = Config.get_instance()
+    registry = Registry.get_instance()
+    search = ParameterSearch.get_instance()
+    instance = args[0]
+
+    setattr(instance, 'config', config)
+    setattr(instance, 'registry', registry)
+    setattr(instance, 'search', search)
+
+    for inject in injectables:
+        parent, name = DotDict.resolve(registry.instances, inject)
+        value = getattr(parent, name, None)
+        if value is None:
+            logging.error('Trying to inject dependency of unresolved key: {} into instance: {}'
+                          .format(inject, instance))
+            raise DependencyInjectionError()
+        setattr(instance, name, value)
+
+
+def handle_config(args, path, group):
+    config = Config.get_instance()
+    instance = args[0]
+
+    if path is not None:
+        imported_config = Config.load(path=path)
+        if group is not None:
+            config.set_value(group, imported_config)
+        else:
+            for k, v in imported_config.items():
+                setattr(config, k, imported_config)
+
+    setattr(instance, 'config', config)
 
 
 def wrapper_delegate(func, injectables):
@@ -18,19 +57,7 @@ def wrapper_delegate(func, injectables):
     """
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
-        config = Config.get_instance()
-        registry = Registry.get_instance()
-        instance = args[0]
-
-        setattr(instance, 'config', config)
-        setattr(instance, 'registry', registry)
-
-        for name in injectables:
-            value = getattr(registry.instances, name, None)
-            if value is None:
-                raise DependencyInjectionError()
-            setattr(instance, name, value)
-
+        handle_injections(args, injectables)
         return func(*args, **kwargs)
     return wrapper
 
@@ -43,7 +70,7 @@ def experiment(func=None, injectables: list = None):
     :return:
     """
     if injectables is None:
-        injectables = ['model', 'dataset', 'data_builder', 'optimizer',
+        injectables = ['transform', 'dataset', 'data_builder', 'model', 'optimizer',
                        'collectible', 'criterion', 'metric', 'writer']
 
     if not func:
@@ -104,21 +131,35 @@ def model(func=None, names: list = None):
     return wrapper_delegate(func, names)
 
 
-def strategy(func=None, names: list = None):
+def handle_registration(group):
+    config = Config.get_instance()
+    context = Context.get_instance()
+    parent, name = DotDict.resolve(config, group)
+    types = getattr(parent, name)
+    context.instantiate_types(types)
+
+
+def strategy(group: str, config: str, injectables: list = None):
     """
     Strategy decorator to inject the default training strategy instance.
-    :param func: original function instance
-    :param names: names of the injection variable as specified in the config
+    :param group: defines the group name of the current training strategy
+    :param config: property file for the current training strategy
+    :param injectables: names of the injection variable as specified in the config
     :return:
     """
-    if names is None:
-        names = ['strategy']
+    if injectables is None:
+        injectables = ['transform', 'dataset', 'data_builder', 'model', 'optimizer',
+                       'collectible', 'criterion', 'metric', 'writer']
 
-    if not func:
-        # workaround to enable empty decorator
-        return functools.partial(strategy, names=names)
-
-    return wrapper_delegate(func, names)
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            handle_config(args, config, group)
+            handle_registration(group)
+            handle_injections(args, injectables)
+            return func(*args, **kwargs)
+        return wrapper
+    return decorator
 
 
 def context(func):
@@ -131,10 +172,12 @@ def context(func):
     def wrapper(*args, **kwargs):
         config = Config.get_instance()
         registry = Registry.get_instance()
+        search = ParameterSearch.get_instance()
         instance = args[0]
 
         setattr(instance, 'config', config)
         setattr(instance, 'registry', registry)
+        setattr(instance, 'search', search)
 
         return func(*args, **kwargs)
     return wrapper
@@ -157,19 +200,7 @@ def config(func=None, path: str = None, group: str = None):
 
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
-        config = Config.get_instance()
-        instance = args[0]
-
-        if path is not None:
-            imported_config = Config.load(path=path)
-            if group is not None:
-                config.set_value(group, imported_config)
-            else:
-                for k, v in imported_config.items():
-                    setattr(config, k, imported_config)
-
-        setattr(instance, 'config', config)
-
+        handle_config(args, path, group)
         return func(*args, **kwargs)
     return wrapper
 
@@ -183,6 +214,30 @@ def search_and_load_type(instance):
     new_ = class_()
     registry.register_instance(key, new_)
     return new_
+
+
+def search(params: List[Tuple[str, Parameter]] = None):
+    """
+    Decorator for searching hyper-parameters.
+    :param params:
+    :return:
+    """
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            search = ParameterSearch.get_instance()
+            instance = args[0]
+
+            setattr(instance, 'search', search)
+
+            if params is not None:
+                for param in params:
+                    if param[0] not in search:
+                        setattr(search, param[0], param[1])
+
+            return func(*args, **kwargs)
+        return wrapper
+    return decorator
 
 
 def inject(instance: str, name: str, type: RegistryOption = RegistryOption.Instances):
@@ -213,6 +268,7 @@ def inject(instance: str, name: str, type: RegistryOption = RegistryOption.Insta
 
             # if value is still None then through error, since it was never registered or failed to load
             if value is None:
+                logging.error('Trying to inject dependency of unresolved name: {}'.format(name))
                 raise DependencyInjectionError()
 
             setattr(obj_instance, name, value)
@@ -250,6 +306,7 @@ def device(func=None, id: str = None, group: str = 'device.default', name: str =
         value = config.get_value(group)
         # if never set but called, then through exception
         if value is None:
+            logging.error('Trying to inject dependency of unresolved name: {}'.format(name))
             raise DependencyInjectionError()
 
         setattr(obj_instance, name, value)
