@@ -9,6 +9,7 @@ from enum import Enum
 from lighter.config import Config
 from lighter.context import Context
 from lighter.exceptions import DependencyInjectionError
+from lighter.loader import Loader
 from lighter.misc import DotDict
 from lighter.registry import Registry
 from lighter.search import ParameterSearch
@@ -17,6 +18,7 @@ from lighter.parameter import Parameter
 
 DEFAULT_PROPERTIES = ['transform', 'dataset', 'data_builder', 'model', 'optimizer',
                        'collectible', 'criterion', 'metric', 'writer']
+Context.create()
 
 
 def _handle_injections(args, injectables):
@@ -220,6 +222,28 @@ def inject(source: str, property: str, option: InjectOption = InjectOption.Insta
             setattr(obj_instance, property, value)
 
             return func(*args, **kwargs)
+        return wrapper
+    return decorator
+
+
+def register(type: str, property: str = None):
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            obj_instance = args[0]
+
+            registry = Registry.get_instance()
+
+            instance, key = DotDict.resolve(registry.instances, type)
+            setattr(instance, key, type)
+            registry.register_type(key, type)
+            module = Loader.import_path(type)
+            value = module()
+            registry.register_instance(key, value)
+
+            if property is not None:
+                setattr(obj_instance, property, value)
+
         return wrapper
     return decorator
 

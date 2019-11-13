@@ -44,7 +44,7 @@ class Context(object):
             Context._mutex.release()
 
     @staticmethod
-    def create(config_file: str = None):
+    def create(config_file: str = None) -> None:
         """
         Create application context threadsafe.
         :param config_file:

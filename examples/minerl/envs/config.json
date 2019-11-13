@@ -1,0 +1,5 @@
+{
+  "env_name": "MineRLObtainDiamondDense",
+  "host": "localhost",
+  "port": 9999
+}

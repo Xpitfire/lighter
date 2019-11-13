@@ -1,6 +1,7 @@
 import importlib
 import traceback
 import logging
+
 from threading import RLock
 from lighter.exceptions import MultipleInstanceError
 from lighter.registry import Registry

@@ -3,16 +3,16 @@ import unittest
 
 from lighter.config import Config
 from lighter.context import Context
-from examples.coco_looking.experiments.defaults import SimpleExperiment
 from lighter.decorator import inject, config, device, context, search, strategy, InjectOption
 from lighter.misc import create_template_file
 from lighter.parameter import GridParameter
 from lighter.misc import get_lighter_path
+from examples.coco_looking.experiments.defaults import SimpleExperiment
 
 DEFAULT_CONFIG_FILE = 'examples/coco_looking/configs/coco_looking.config.json'
 
 
-class TestExperiment(unittest.TestCase):
+class TestLighter(unittest.TestCase):
     def test_config(self):
         Context.create(DEFAULT_CONFIG_FILE)
         config = Config.get_instance()
