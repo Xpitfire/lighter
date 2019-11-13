@@ -2,12 +2,14 @@
 
 import sys
 import os
+
+from datetime import datetime
 from lighter.misc import create_template_file, copy_file, create_init, get_lighter_root
 
 project_name = sys.argv[1]
 
 # copy and prepare templates
-template = {'project': project_name}
+template = {'project': project_name, 'year': datetime.now().year}
 
 
 root = get_lighter_root()
@@ -31,5 +33,5 @@ create_template_file(project_name, 'modules.config.json', 'modules.config.json',
 create_template_file(project_name, 'setup.template', 'setup.py', template)
 
 # copy license and readme
-copy_file(project_name, 'LICENSE', 'LICENSE', override=False)
+create_template_file(project_name, 'LICENSE', 'LICENSE', template)
 create_template_file(project_name, 'README.md', 'README.md', template)

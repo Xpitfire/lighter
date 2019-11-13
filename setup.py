@@ -3,9 +3,8 @@ from setuptools import find_packages, setup
 with open("README.md", "r") as fh:
     readme = fh.read()
 
-requirements = {"install": ["ffmpeg", "natsort", "numpy", "tqdm", "imageio", "opencv-python", "Pillow",
-                            "torch", "torchvision", "tensorboard", "coloredlogs",
-                            "petname", "pandas"]}
+requirements = {"install": ["ffmpeg", "natsort", "numpy", "tqdm", "torch", "torchvision",
+                            "tensorboard", "coloredlogs", "petname", "pandas"]}
 
 install_requires = requirements["install"]
 
