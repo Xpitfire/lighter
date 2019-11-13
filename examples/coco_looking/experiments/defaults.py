@@ -4,12 +4,13 @@ import numpy as np
 from tqdm import tqdm
 from datetime import datetime
 
-from lighter.decorator import config
+from lighter.decorator import config, strategy
 from lighter.experiment import BaseExperiment
 
 
 class SimpleExperiment(BaseExperiment):
-    @config(path='examples/coco_looking/experiments/defaults.config.json', group='experiment')
+    @strategy(config='examples/coco_looking/experiments/modules.config.json')
+    @config(path='examples/coco_looking/experiments/defaults.config.json', property='experiment')
     def __init__(self):
         super(SimpleExperiment, self).__init__()
         self.train_loader, self.val_loader = self.data_builder.loader()

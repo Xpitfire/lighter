@@ -1,14 +1,11 @@
 from threading import RLock
-from enum import Enum
 from lighter.misc import DotDict
 
 
-class RegistryOption(Enum):
-    Types = 0
-    Instances = 1
-
-
 class Registry(object):
+    """
+    Instance and type registry for properties loaded from configs.
+    """
     _instance = None
     # mutex for threadsafe usage
     _mutex = RLock()

@@ -2,6 +2,9 @@ from lighter.decorator import context
 
 
 class BaseTransform(object):
+    """
+    Base class for transforming data.
+    """
     @context
     def __init__(self):
         pass

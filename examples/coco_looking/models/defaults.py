@@ -7,7 +7,7 @@ from lighter.parameter import GridParameter
 
 
 class AlexNetFeatureExtractionModel(BaseModule):
-    @config(path='examples/coco_looking/models/defaults.config.json', group='model')
+    @config(path='examples/coco_looking/models/defaults.config.json', property='model')
     @search(params=[('hidden_units', GridParameter(ref='model.hidden_units', min=100, max=1000, step=100))])
     def __init__(self):
         super(AlexNetFeatureExtractionModel, self).__init__()

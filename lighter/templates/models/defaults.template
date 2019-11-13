@@ -6,7 +6,7 @@ from lighter.model import BaseModule
 
 
 class Model(BaseModule):
-    @config(path='$project/models/defaults.config.json', group='model')
+    @config(path='$project/models/defaults.config.json', property='model')
     def __init__(self):
         super(Model, self).__init__()
         # TODO: setup network architecture for forward pass

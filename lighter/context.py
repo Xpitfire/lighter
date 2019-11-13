@@ -6,6 +6,9 @@ from lighter.search import ParameterSearch
 
 
 class Context(object):
+    """
+    Application context handling all the config, registry and search parameter instances.
+    """
     # mutex to protect context from multiprocess concurrent access
     _mutex = RLock()
     _instance = None

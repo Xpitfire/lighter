@@ -3,7 +3,7 @@ from lighter.writer import BaseWriter
 
 
 class Writer(BaseWriter):
-    @config(path='examples/coco_looking/writers/defaults.config.json', group='writer')
+    @config(path='examples/coco_looking/writers/defaults.config.json', property='writer')
     def __init__(self):
         super(Writer, self).__init__()
 

@@ -1,5 +1,4 @@
 import numpy as np
-from lighter.config import Config
 
 from lighter.decorator import context
 from lighter.misc import DotDict

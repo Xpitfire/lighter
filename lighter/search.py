@@ -3,6 +3,9 @@ from lighter.misc import DotDict
 
 
 class ParameterSearch(DotDict):
+    """
+    Parameter search collection updated by the @search decorator.
+    """
     _mutex = RLock()
     _instance = None
 

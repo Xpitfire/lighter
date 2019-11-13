@@ -11,7 +11,7 @@ from lighter.decorator import config
 
 
 class LookingDataset(BaseDataset):
-    @config(path='examples/coco_looking/datasets/defaults.config.json', group='dataset')
+    @config(path='examples/coco_looking/datasets/defaults.config.json', property='dataset')
     def __init__(self):
         super(LookingDataset, self).__init__()
         self.root_dir = self.config.dataset.root_dir

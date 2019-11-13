@@ -3,6 +3,9 @@ from lighter.config import Config
 
 
 class Parameter(object):
+    """
+    Base Parameter class for handling hyperparameter search.
+    """
     def __init__(self, ref):
         super(Parameter, self).__init__()
         self.config = Config.get_instance()
@@ -18,6 +21,9 @@ class Parameter(object):
 
 
 class GridParameter(Parameter):
+    """
+    Grid search parameter with linear unified step sizes.
+    """
     def __init__(self, ref: str, min: float, max: float, step: float = 1.0):
         super(GridParameter, self).__init__(ref)
         self.min = min
@@ -38,6 +44,9 @@ class GridParameter(Parameter):
 
 
 class CallableGridParameter(Parameter):
+    """
+    Grid search parameter with lambda function based step sizes which allows non linear changes.
+    """
     def __init__(self, ref: str, min: float, max: float, step: Callable[[float], float]):
         super(CallableGridParameter, self).__init__(ref)
         self.min = min
@@ -58,6 +67,9 @@ class CallableGridParameter(Parameter):
 
 
 class AnnealParameter(Parameter):
+    """
+    Annealing search parameter which allows lambda function non-linear decline.
+    """
     def __init__(self, ref: str, start: float, threshold: float, anneal: Callable[[float], float]):
         super(AnnealParameter, self).__init__(ref)
         self.start = start

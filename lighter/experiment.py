@@ -1,4 +1,4 @@
-from lighter.decorator import experiment, device
+from lighter.decorator import device, experiment
 
 
 class BaseExperiment(object):
@@ -35,4 +35,3 @@ class BaseExperiment(object):
         :return:
         """
         raise NotImplementedError('BaseExperiment: No implementation found!')
-
