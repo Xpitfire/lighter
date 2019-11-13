@@ -10,7 +10,8 @@ from lighter.parameter import GridParameter
 
 
 class Experiment(BaseExperiment):
-    @config(path='$project/experiments/defaults.config.json', group='experiment')
+    @config(path='$project/experiments/defaults.config.json', property='experiment')
+    @strategy(config='$project/configs/modules.config.json')
     def __init__(self):
         super(Experiment, self).__init__()
         self.train_loader, self.val_loader = self.data_builder.loader()
@@ -70,9 +71,3 @@ class SearchExperiment(Experiment):
                 super().run(*args, **kwargs)
             except Exception as e:
                 print('Experiment failed and skipped: {}'.format(e))
-
-
-class TrainingStrategyExperiment(object):
-    @strategy
-    def __init__(self):
-        pass
