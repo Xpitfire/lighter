@@ -84,8 +84,7 @@ class RemoteGym(object):
         except Exception as e:
             logging.error("Connection error - {}".format(e))
             raise
-
-        return soc
+        self.socket = soc
 
     def version(self):
         response = _send_message(self.socket, "version", None)

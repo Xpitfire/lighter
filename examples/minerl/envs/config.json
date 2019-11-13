@@ -1,5 +1,5 @@
 {
-  "env_name": "MineRLObtainDiamondDense",
+  "env_name": "MineRLObtainDiamondDense-v0",
   "host": "localhost",
   "port": 9999
 }

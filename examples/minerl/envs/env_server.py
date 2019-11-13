@@ -2,6 +2,7 @@ import socket
 import sys
 import traceback
 import gym
+import logging
 import minerl
 import struct
 import argparse
@@ -31,16 +32,16 @@ class EnvServer:
         # SO_REUSEADDR flag tells the kernel to reuse a local socket in TIME_WAIT state,
         # without waiting for its natural timeout to expire
         soc.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        print("Socket created")
+        logging.info("Socket created")
 
         try:
             soc.bind((self.host, self.port))
         except:
-            print("Bind failed. Error : " + str(sys.exc_info()))
+            logging.error("Bind failed. Error : " + str(sys.exc_info()))
             sys.exit()
 
         soc.listen(5)  # queue up to 5 requests
-        print("Socket now listening")
+        logging.info("Socket now listening")
         self.soc = soc
 
     def listen(self):
@@ -49,12 +50,12 @@ class EnvServer:
             while True:
                 connection, address = self.soc.accept()
                 ip, port = str(address[0]), str(address[1])
-                print("Connected with " + ip + ":" + port)
+                logging.info("Connected with " + ip + ":" + port)
 
                 try:
                     Thread(target=self.client_thread, args=(connection,)).start()
                 except:
-                    print("Thread did not start.")
+                    logging.error("Thread did not start.")
                     traceback.print_exc()
         finally:
             self.soc.close()
@@ -76,7 +77,7 @@ class EnvServer:
                         send_data(connection, self.handler.message_dict[handler](client_address, client_input["data"]))
                     else:
                         send_data(connection, Exception("invalid type"))
-                        print(Exception("Invalid type"))
+                        logging.error(Exception("Invalid type"))
                 else:
                     try:
                         send_data(connection, Exception("invalid message"))
@@ -145,42 +146,41 @@ class Handler:
         return self.env_name
 
     def handle_make(self, client, data):
-        print("Make %s" % data)
+        logging.info("Make %s" % data)
         if data == self.env_name:
             try:
                 self.reserve_env(self.env_pool, self.env_register, client)
-                print("Success")
+                logging.info("Success")
                 return True
             except:
-                print("Failed - Exception in reserve_env")
+                logging.error("Failed - Exception in reserve_env")
                 return False
         else:
-            print("Failed - Environment ID mismatch")
+            logging.error("Failed - Environment ID mismatch: {}".format(self.env_name))
             return False
 
     def handle_close(self, client, data):
-        print("Close")
+        logging.info("Close")
         self.release_env(self.env_register, client)
         return True
 
     def handle_step(self, client, data):
-        # print("Step: %s" % (client,))
         env = self.env_pool[self.env_register[client]]
         try:
             return env.step(data)
         except Exception as e:
             try:
-                print("EXCEPTION DURING env.step, resetting...\n{}".format(e))
+                logging.error("EXCEPTION DURING env.step, resetting...\n{}".format(e))
                 env.reset()
                 return self.handle_step(client, data)
             except Exception as e:
                 # assume broken env
-                print("EXCEPTION DURING env.step.reset, restarting_env...\n{}".format(e))
+                logging.error("EXCEPTION DURING env.step.reset, restarting_env...\n{}".format(e))
                 self.restart_env(self.env_register[client])
                 return self.handle_step(client, data)
 
     def handle_reset(self, client, data):
-        print("Reset: %s, %s" % (client, data))
+        logging.info("Reset: %s, %s" % (client, data))
         env = self.env_pool[self.env_register[client]]
         seed = data["seed"] if "seed" in data else None
         if seed:
@@ -189,12 +189,12 @@ class Handler:
             return env.reset()
         except Exception as e:
             # assume broken env
-            print("EXCEPTION DURING env.reset, restarting_env...\n{}".format(e))
+            logging.error("EXCEPTION DURING env.reset, restarting_env...\n{}".format(e))
             return self.restart_env(self.env_register[client], seed=seed)
 
     @staticmethod
     def _make_env(env_name):
-        print("Initializing %s" % env_name)
+        logging.info("Initializing %s" % env_name)
         env = gym_sync_create(env_name)
         env.reset()
         return env
@@ -215,17 +215,17 @@ class Handler:
     def startup_pool(self):
         # startup env pool
 
-        print("Starting up environment pool (%d): %s" % (self.num_envs, self.env_name))
+        logging.info("Starting up environment pool (%d): %s" % (self.num_envs, self.env_name))
         # p = Pool(self.num_envs)
         # envs = p.map(self._make_env, [self.env_name for i in range(self.num_envs)])
         # env_pool = {i: envs[i] for i in range(self.num_envs)}
         env_pool = {i: gym.make(self.env_name) for i in range(self.num_envs)}
         env_register = {}
         for env_id, env in env_pool.items():
-            print("Resetting env...")
+            logging.info("Resetting env...")
             env.reset()
-            print("Done")
-        print("Ready!")
+            logging.info("Done")
+        logging.info("Ready!")
         self.env_pool = env_pool
         self.env_register = env_register
 
@@ -234,14 +234,15 @@ class Handler:
         for env_id, env in pool.items():
             if not env_id in register.values():
                 register[address] = env_id
-                print("Reserved environment %d for %s" % (env_id, address))
+                logging.info("Reserved environment %d for %s" % (env_id, address))
                 return
         raise Exception("Out of Environments!")
 
-    def release_env(self, register, address):
+    @staticmethod
+    def release_env(register, address):
         if address in register:
             env_id = register.pop(address)
-            print("Released env %d used by %s" % (env_id, address))
+            logging.info("Released env %d used by %s" % (env_id, address))
 
 
 def parse_args():
