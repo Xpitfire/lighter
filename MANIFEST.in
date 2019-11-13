@@ -1,6 +1,8 @@
 include lighter/**/*.pyi
+global-include *.md
 global-include *.json
 global-include *.template
+include lighter/templates/LICENSE
 prune examples
 prune tests
 prune runs

@@ -3,21 +3,19 @@ from setuptools import find_packages, setup
 with open("README.md", "r") as fh:
     readme = fh.read()
 
-requirements = {"install": ["ffmpeg", "natsort", "numpy", "tqdm", "imageio", "opencv-python", "Pillow",
-                            "torch", "torchvision", "tensorboard", "coloredlogs",
-                            "petname", "pandas"]}
+requirements = {"install": ["ffmpeg", "natsort", "numpy", "tqdm", "torch", "torchvision",
+                            "tensorboard", "coloredlogs", "pandas"]}
 
 install_requires = requirements["install"]
 
 setup(
     # Metadata
-    name="torch-lighter",
-    author="Marius-Constantin Dinu",
-    version="0.0.3",
-    author_email="dinu.marius-constantin@hotmail.com",
-    url="https://github.com/Xpitfire/lighter",
-    scripts=['bin/lighter-init'],
-    description="Lightweight extension for torch to speed-up prototyping.",
+    name="$project",
+    author="Your name",
+    version="0.0.0",
+    author_email="",
+    url="https://path.to.repo",
+    description="Description of your project.",
     long_description=readme,
     long_description_content_type="text/markdown",
     # Package info

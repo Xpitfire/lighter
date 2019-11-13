@@ -12,16 +12,24 @@ template = {'project': project_name}
 
 root = get_lighter_root()
 template_root = os.path.join(root, 'templates')
-modules = [value for value in os.listdir(template_root) if value != 'configs']
+modules = [value for value in os.listdir(template_root) if value != 'configs'
+           and os.path.isdir(os.path.join(template_root, value))]
 
 # handle python and config templates
 for module in modules:
-    create_template_file(project_name, module, 'defaults.template', 'defaults.py', template)
-    copy_file(project_name, module, 'defaults.config.json', 'defaults.config.json')
+    create_template_file(project_name, 'defaults.template', 'defaults.py', template, module_name=module)
+    copy_file(project_name, 'defaults.config.json', 'defaults.config.json', module_name=module)
     create_init(project_name, module)
 
 # create root dir init
 create_init(project_name)
 
 # create modules config file
-create_template_file(project_name, 'configs', 'modules.config.json', 'modules.config.json', template)
+create_template_file(project_name, 'modules.config.json', 'modules.config.json', template, module_name='configs')
+
+# handle setup.py
+create_template_file(project_name, 'setup.template', 'setup.py', template)
+
+# copy license and readme
+copy_file(project_name, 'LICENSE', 'LICENSE', override=False)
+create_template_file(project_name, 'README.md', 'README.md', template)

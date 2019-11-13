@@ -7,6 +7,7 @@ from examples.coco_looking.experiments.defaults import SimpleExperiment
 from lighter.decorator import inject, config, device, context, search, strategy, InjectOption
 from lighter.misc import create_template_file
 from lighter.parameter import GridParameter
+from lighter.misc import get_lighter_path
 
 DEFAULT_CONFIG_FILE = 'examples/coco_looking/configs/coco_looking.config.json'
 
@@ -31,12 +32,12 @@ class TestExperiment(unittest.TestCase):
         project_name = 'tmp'
         module = 'models'
         template = {'project': project_name}
-        create_template_file(project_name, module, 'defaults.template', 'defaults.py', template)
+        create_template_file(project_name, 'defaults.template', 'defaults.py', template, module_name=module)
         self.assertTrue(os.path.exists('tmp/models/defaults.py'))
 
     def test_inject_decorator(self):
         class Demo:
-            @device(id='cuda:0')
+            @device(name='cuda:0')
             @config(path='tests/test_inject_decorator.json', property='modules')
             @inject(source='test', property='demo_model', option=InjectOption.Instance)
             def __init__(self):
@@ -72,6 +73,10 @@ class TestExperiment(unittest.TestCase):
                 pass
         exp = Experiment()
         self.assertTrue(exp.model is not None)
+
+    def test_lighter_init_path(self):
+        exists, path = get_lighter_path('models', 'defaults.template')
+        self.assertTrue(exists)
 
 
 if __name__ == '__main__':

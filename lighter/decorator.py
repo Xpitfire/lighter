@@ -90,18 +90,18 @@ def _search_and_load_type(instance):
 # ----------- PUBLIC DECORATORS -----------
 
 
-def device(func=None, id: str = None, source: str = 'device.default', property: str = 'device'):
+def device(func=None, name: str = None, source: str = 'device.default', property: str = 'device'):
     """
     Injects a device info into the current object instance.
     :param func: original function instance
-    :param id: device id if pre-specified
+    :param name: device id if pre-specified
     :param source: source path for the config
     :param property: device name for injection
     :return:
     """
     if not func:
         # workaround to enable empty decorator
-        return functools.partial(device, id=id, source=source, property=property)
+        return functools.partial(device, name=name, source=source, property=property)
 
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
@@ -109,11 +109,11 @@ def device(func=None, id: str = None, source: str = 'device.default', property: 
         obj_instance = args[0]
 
         # update device according to id
-        if id is not None:
-            if not torch.cuda.is_available() or 'cpu' in id:
+        if name is not None:
+            if not torch.cuda.is_available() or 'cpu' in name:
                 config.set_value(source, torch.device('cpu'))
             else:
-                config.set_value(source, torch.device(id))
+                config.set_value(source, torch.device(name))
 
         value = config.get_value(source)
         # if never set but called, then through exception
