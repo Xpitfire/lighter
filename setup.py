@@ -12,7 +12,7 @@ setup(
     # Metadata
     name="torch-lighter",
     author="Marius-Constantin Dinu",
-    version="0.0.5",
+    version="0.0.6",
     author_email="dinu.marius-constantin@hotmail.com",
     url="https://github.com/Xpitfire/lighter",
     scripts=['bin/lighter-init'],
