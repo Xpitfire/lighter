@@ -10,7 +10,7 @@ class App:
 
 if __name__ == '__main__':
     app = App()
-    app.env.connect()
-    env = app.env.make(app.config.env.env_name)
-    if env is not None:
+    if app.env is not None and hasattr(app.env, 'step'):
         pass
+    else:
+        raise NotImplementedError()
