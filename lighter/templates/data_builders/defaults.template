@@ -1,13 +1,12 @@
 import torch
 import numpy as np
 from torch.utils.data import SubsetRandomSampler
-
 from lighter.data_builder import BaseDataBuilder
 from lighter.decorator import config
 
 
 class DataBuilder(BaseDataBuilder):
-    @config(path='$project/data_builders/defaults.config.json', property='data_builder')
+    @config(path='data_builders/defaults.config.json', property='data_builder')
     def __init__(self):
         super(DataBuilder, self).__init__()
     

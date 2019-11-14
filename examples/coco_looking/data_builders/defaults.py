@@ -7,7 +7,7 @@ from lighter.decorator import config
 
 
 class DataBuilder(BaseDataBuilder):
-    @config(path='examples/coco_looking/data_builders/defaults.config.json', property='data_builder')
+    @config(path='data_builders/defaults.config.json', property='data_builder')
     def __init__(self):
         super(DataBuilder, self).__init__()
     

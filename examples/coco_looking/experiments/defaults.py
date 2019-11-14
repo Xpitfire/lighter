@@ -9,8 +9,8 @@ from lighter.experiment import BaseExperiment
 
 
 class SimpleExperiment(BaseExperiment):
-    @strategy(config='examples/coco_looking/experiments/modules.config.json')
-    @config(path='examples/coco_looking/experiments/defaults.config.json', property='experiment')
+    @strategy(config='experiments/modules.config.json')
+    @config(path='experiments/defaults.config.json', property='experiment')
     def __init__(self):
         super(SimpleExperiment, self).__init__()
         self.train_loader, self.val_loader = self.data_builder.loader()

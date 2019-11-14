@@ -1,11 +1,11 @@
+import os
 import functools
 import logging
 import inspect
 import torch
+
 from typing import Tuple, List
-
 from enum import Enum
-
 from lighter.config import Config
 from lighter.context import Context
 from lighter.exceptions import DependencyInjectionError
@@ -15,10 +15,8 @@ from lighter.registry import Registry
 from lighter.search import ParameterSearch
 from lighter.parameter import Parameter
 
-
 DEFAULT_PROPERTIES = ['transform', 'dataset', 'data_builder', 'model', 'optimizer',
-                       'collectible', 'criterion', 'metric', 'writer']
-Context.create()
+                      'collectible', 'criterion', 'metric', 'writer']
 
 
 def _handle_injections(args, injectables):
@@ -46,7 +44,7 @@ def _handle_config(args, path, source):
     instance = args[0]
 
     if path is not None:
-        imported_config = Config.load(path=path)
+        imported_config, _ = Config.load(path=path)
         if source is not None:
             config.set_value(source, imported_config)
         else:
@@ -71,10 +69,12 @@ def _wrapper_delegate(func, injectables):
     :param injectables: name of the value to inject
     :return:
     """
+
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         _handle_injections(args, injectables)
         return func(*args, **kwargs)
+
     return wrapper
 
 
@@ -126,6 +126,7 @@ def device(func=None, name: str = None, source: str = 'device.default', property
         setattr(obj_instance, property, value)
 
         return func(*args, **kwargs)
+
     return wrapper
 
 
@@ -148,6 +149,7 @@ def config(func=None, path: str = None, property: str = None):
     def wrapper(*args, **kwargs):
         _handle_config(args, path, property)
         return func(*args, **kwargs)
+
     return wrapper
 
 
@@ -157,6 +159,7 @@ def context(func):
     :param func: original function instance
     :return:
     """
+
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         config = Config.get_instance()
@@ -169,6 +172,7 @@ def context(func):
         setattr(instance, 'search', search)
 
         return func(*args, **kwargs)
+
     return wrapper
 
 
@@ -187,6 +191,7 @@ def inject(source: str, property: str, option: InjectOption = InjectOption.Insta
     :param option: Option for the registry lookup.
     :return:
     """
+
     def decorator(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
@@ -222,7 +227,9 @@ def inject(source: str, property: str, option: InjectOption = InjectOption.Insta
             setattr(obj_instance, property, value)
 
             return func(*args, **kwargs)
+
         return wrapper
+
     return decorator
 
 
@@ -245,6 +252,7 @@ def register(type: str, property: str = None):
                 setattr(obj_instance, property, value)
 
         return wrapper
+
     return decorator
 
 
@@ -262,7 +270,9 @@ def experiment(properties: list = None):
         def wrapper(*args, **kwargs):
             _handle_injections(args, properties)
             return func(*args, **kwargs)
+
         return wrapper
+
     return decorator
 
 
@@ -284,7 +294,9 @@ def strategy(config: str, source: str = 'default', properties: list = None):
             _handle_registration(source)
             _handle_injections(args, properties)
             return func(*args, **kwargs)
+
         return wrapper
+
     return decorator
 
 
@@ -345,6 +357,7 @@ def search(params: List[Tuple[str, Parameter]] = None):
     :param params: list of tuples containing searchable parameters
     :return:
     """
+
     def decorator(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
@@ -359,5 +372,7 @@ def search(params: List[Tuple[str, Parameter]] = None):
                         setattr(search, param[0], param[1])
 
             return func(*args, **kwargs)
+
         return wrapper
+
     return decorator

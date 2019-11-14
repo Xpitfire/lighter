@@ -10,8 +10,8 @@ from lighter.parameter import GridParameter
 
 
 class Experiment(BaseExperiment):
-    @config(path='minerl/experiments/defaults.config.json', property='experiment')
-    @strategy(config='minerl/configs/modules.config.json')
+    @config(path='experiments/defaults.config.json', property='experiment')
+    @strategy(config='configs/modules.config.json')
     def __init__(self):
         super(Experiment, self).__init__()
         self.train_loader, self.val_loader = self.data_builder.loader()

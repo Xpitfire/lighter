@@ -1,5 +1,5 @@
 {
   "modules": {
-    "import_config": "import::examples/coco_looking/configs/modules.config.json"
+    "import_config": "import::configs/modules.config.json"
   }
 }

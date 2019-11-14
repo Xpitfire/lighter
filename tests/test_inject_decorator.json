@@ -1,3 +1,0 @@
-{
-  "test": "type::examples.coco_looking.models.defaults.AlexNetFeatureExtractionModel"
-}

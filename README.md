@@ -11,13 +11,15 @@ $> pip install torch-lighter
 
 ## Description
 
-Create new project structure:
+### Create new project
+
+Type the following in your command line / bash:
 ```shell script
 $> lighter-init <project-name>
 ``` 
 
 ### Structure overview
-The following project structure will be created:
+The above command will create the following project structure:
 ```text
 my_project:
   * __init__.py
@@ -53,6 +55,12 @@ my_project:
     - __init__.py
     - defaults.config.json
     - defaults.py
+  * tests
+    - __init__.py
+    - test_experiment.py
+  * transforms
+    - __init__.py
+    - defaults.py
   * writers
     - __init__.py
     - defaults.config.json
@@ -70,11 +78,22 @@ Of course this is only a preset example and the projects can be structured at wi
 - metrics: metrics used to measure performance
 - modules: references all available modules
 - optimizers: optimizers used for performing the step
+- tests: contains the main testing sources for the project and mark the main entrance point
+- transforms: data transforms are used by the datasets to reshape the data structures
 - writers: tensorboard writers
 
 ### Detailed description
 
 Each directory containing a python file may also contain a config file outsourcing properties for testing.
+Modules that require further code insertion are marked with `TODO` flags.
+
+### Run an experiment
+
+After creating a demo project and inserting code into the `TODO` placeholders simply run an experiment by calling:
+```python
+$> python tests/test_experiment.py
+```
+
 
 ## Usage
 
@@ -83,7 +102,7 @@ Each directory containing a python file may also contain a config file outsourci
 One can simply extend from any base class within the lighter framework:
 ```python
 class SimpleExperiment(BaseExperiment):
-    @config(path='my_project/experiments/defaults.config.json', property='experiments')
+    @config(path='experiments/defaults.config.json', property='experiments')
     def __init__(self):
         super(SimpleExperiment, self).__init__()
 
@@ -117,19 +136,20 @@ There are currently five decorators:
 * `@experiment` - injects a set of pre-set instances
 * `@strategy` - loads and defines a training set strategy from a config and injects the main object instances
 * `@inject` - allows to inject single instances from different context options (registry, types, instances, configs)
+* `@register` - allows to quickly register a new type to the context registry and inject the instance into the current instance
 
 By default the templates for a new project are using these names for dependency injection `['dataset', 'data_builder', 'criterion', 'model', 'writer', 'optimizer', 'metric', 'collectible']`
 ```json
 {
     "modules": {
-        "dataset": "type::$project.datasets.defaults.LookingDataset",
-        "data_builder": "type::$project.data_builders.defaults.SimpleDataBuilder",
-        "criterion": "type::$project.criterions.defaults.SimpleCriterion",
-        "model": "type::$project.models.defaults.Network",
-        "writer": "type::$project.writers.defaults.SimpleWriter",
-        "optimizer": "type::$project.optimizers.defaults.SimpleOptimizer",
-        "metric": "type::$project.metrics.defaults.SimpleMetric",
-        "collectible": "type::$project.collectibles.defaults.SimpleCollectible"
+        "dataset": "type::datasets.defaults.LookingDataset",
+        "data_builder": "type::data_builders.defaults.SimpleDataBuilder",
+        "criterion": "type::criterions.defaults.SimpleCriterion",
+        "model": "type::models.defaults.Network",
+        "writer": "type::writers.defaults.SimpleWriter",
+        "optimizer": "type::optimizers.defaults.SimpleOptimizer",
+        "metric": "type::metrics.defaults.SimpleMetric",
+        "collectible": "type::collectibles.defaults.SimpleCollectible"
     }
 }
 ```
@@ -139,7 +159,7 @@ But it is simply exchangeable by referring to a new name such as:
 {
     "modules": {
         ...
-        "other_model_name": "type::$project.models.defaults.Network",
+        "other_model_name": "type::models.defaults.Network",
         ...
     }
 }

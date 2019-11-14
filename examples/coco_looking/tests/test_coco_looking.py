@@ -4,12 +4,11 @@ import unittest
 from lighter.config import Config
 from lighter.context import Context
 from lighter.decorator import inject, config, device, context, search, strategy, InjectOption
-from lighter.misc import create_template_file
+from lighter.utils.io import create_template_file, get_lighter_path
 from lighter.parameter import GridParameter
-from lighter.misc import get_lighter_path
 from examples.coco_looking.experiments.defaults import SimpleExperiment
 
-DEFAULT_CONFIG_FILE = 'examples/coco_looking/configs/coco_looking.config.json'
+DEFAULT_CONFIG_FILE = 'configs/coco_looking.config.json'
 
 
 class TestLighter(unittest.TestCase):
@@ -68,7 +67,7 @@ class TestLighter(unittest.TestCase):
 
     def test_strategy(self):
         class Experiment:
-            @strategy(config='examples/coco_looking/configs/modules.config.json')
+            @strategy(config='configs/modules.config.json')
             def __init__(self):
                 pass
         exp = Experiment()

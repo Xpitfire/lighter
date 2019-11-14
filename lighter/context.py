@@ -13,14 +13,14 @@ class Context(object):
     _mutex = RLock()
     _instance = None
 
-    def __init__(self, config_file: str):
+    def __init__(self, config_file: str, parse_args_override):
         """
         Create a context object and registers configs, types and instances of the defined modules.
         :param config_file: default config file
         """
         Context._mutex.acquire()
         try:
-            self.config = Config.create_instance(config_file)
+            self.config = Config.create_instance(config_file, parse_args_override)
             self.registry = Registry.get_instance()
             self.instantiate_types(self.registry.types)
             self.search = ParameterSearch.get_instance()
@@ -44,15 +44,15 @@ class Context(object):
             Context._mutex.release()
 
     @staticmethod
-    def create(config_file: str = None) -> None:
+    def create(config_file: str = None, parse_args_override: bool = True) -> None:
         """
         Create application context threadsafe.
-        :param config_file:
+        :param config_file: Initial config file for context to load.
+        :param parse_args_override: Allows to override configs according to the command line arguments.
         :return:
         """
         Context._mutex.acquire()
         try:
-            if Context._instance is None:
-                Context._instance = Context(config_file)
+            Context._instance = Context(config_file, parse_args_override)
         finally:
             Context._mutex.release()

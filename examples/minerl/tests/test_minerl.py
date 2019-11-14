@@ -7,7 +7,7 @@ class TestMineRL(unittest.TestCase):
 
     def test_client(self):
         class Example:
-            @register(type='examples.minerl.envs.defaults.Environment', property='env')
+            @register(type='envs.defaults.Environment', property='env')
             def __init__(self):
                 pass
         e = Example()

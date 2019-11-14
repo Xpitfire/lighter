@@ -165,23 +165,24 @@ class Config(DotDict):
                 override(self, name, value)
 
     @staticmethod
-    def create_instance(config_file: str = None) -> "Config":
+    def create_instance(config_file: str = None, parse_args_override: bool = True) -> "Config":
         """
         Create default config instance. Loads the command line overridable config settings and
         sets the default device instance.
         :param config_file: path to config file
+        :param parse_args_override: override
         :return:
         """
         Config._mutex.acquire()
         try:
-            if Config._instance is None:
-                Config._instance, args = Config.load(config_file, parse_args_fallback=True)
-                # load default device
-                device = args.device
-                if torch.cuda.is_available() and 'cuda' in device:
-                    Config._instance.set_value('device.default', torch.device(device))
-                else:
-                    Config._instance.set_value('device.default', torch.device('cpu'))
+            Config._instance, args = Config.load(config_file, parse_args_override)
+            # load default device
+            if args is not None and args.device is not None:
+                Config._instance.set_value('device.default', torch.device(args.device))
+            elif torch.cuda.is_available():
+                Config._instance.set_value('device.default', torch.device('cuda'))
+            else:
+                Config._instance.set_value('device.default', torch.device('cpu'))
             return Config._instance
         finally:
             Config._mutex.release()
@@ -199,19 +200,19 @@ class Config(DotDict):
             Config._mutex.release()
 
     @staticmethod
-    def load(path: str = None, parse_args_fallback: bool = False):
+    def load(path: str = None, parse_args_override: bool = False):
         """
         Loads a property file and allows to override arguments based on command line overrides.
         :param path: path to property file
-        :param parse_args_fallback: fallback to --config if no path was specified.
+        :param parse_args_override: fallback to --config if no path was specified.
         :return: Config instance or Config with command line args tuple if parse_args_fallback is enabled
         """
-        if parse_args_fallback:
+        if parse_args_override:
             parser = argparse.ArgumentParser()
             parser.add_argument('--config', type=str, help='path to config file')
-            parser.add_argument('--device', type=str, default='cuda', help='set the used device')
+            parser.add_argument('--device', type=str, help='set the used device')
             args = parser.parse_args()
             if args.config is not None:
                 path = args.config
             return Config(path), args
-        return Config(path)
+        return Config(path), None

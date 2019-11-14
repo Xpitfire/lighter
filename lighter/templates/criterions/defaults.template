@@ -1,5 +1,5 @@
-from lighter.criterion import BaseCriterion
 import torch.nn.functional as F
+from lighter.criterion import BaseCriterion
 
 
 class Criterion(BaseCriterion):

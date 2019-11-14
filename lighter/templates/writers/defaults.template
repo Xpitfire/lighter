@@ -3,7 +3,7 @@ from lighter.writer import BaseWriter
 
 
 class SimpleWriter(BaseWriter):
-    @config(path='$project/writers/defaults.config.json', property='writer')
+    @config(path='writers/defaults.config.json', property='writer')
     def __init__(self):
         super(SimpleWriter, self).__init__()
 

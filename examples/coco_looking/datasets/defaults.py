@@ -11,13 +11,12 @@ from lighter.decorator import config
 
 
 class LookingDataset(BaseDataset):
-    @config(path='examples/coco_looking/datasets/defaults.config.json', property='dataset')
+    @config(path='datasets/defaults.config.json', property='dataset')
     def __init__(self):
         super(LookingDataset, self).__init__()
         self.root_dir = self.config.dataset.root_dir
-        self.relative_dir = self.config.dataset.relative_dir
         self.source_file = self.config.dataset.source_file
-        json_file = os.path.join(self.root_dir, self.relative_dir, self.source_file)
+        json_file = os.path.join(self.root_dir, self.source_file)
         if not os.path.exists(json_file) and self.config.dataset.download_data:
             self.download_zip(self.config.dataset.data_url, self.config.dataset.root_dir)
         if not os.path.exists(json_file):
@@ -27,8 +26,7 @@ class LookingDataset(BaseDataset):
         self.data = {}
         self.target = []
         for k, v in looking_dict.items():
-            key = os.path.join(self.relative_dir, k)
-            self.target.append((key, v))
+            self.target.append((k, v))
         self.target = pd.DataFrame(self.target)
 
     def __len__(self):

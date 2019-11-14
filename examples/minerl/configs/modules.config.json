@@ -1,14 +1,14 @@
 {
   "modules": {
-    "transform": "type::minerl.transforms.defaults.Transform",
-    "dataset": "type::minerl.datasets.defaults.Dataset",
-    "data_builder": "type::minerl.data_builders.defaults.DataBuilder",
-    "env": "type::minerl.envs.defaults.Environment",
-    "criterion": "type::minerl.criterions.defaults.Criterion",
-    "model": "type::minerl.models.defaults.Model",
-    "writer": "type::minerl.writers.defaults.Writer",
-    "optimizer": "type::minerl.optimizers.defaults.Optimizer",
-    "metric": "type::minerl.metrics.defaults.Metric",
-    "collectible": "type::minerl.collectibles.defaults.Collectible"
+    "transform": "type::transforms.defaults.Transform",
+    "dataset": "type::datasets.defaults.Dataset",
+    "data_builder": "type::data_builders.defaults.DataBuilder",
+    "env": "type::envs.defaults.Environment",
+    "criterion": "type::criterions.defaults.Criterion",
+    "model": "type::models.defaults.Model",
+    "writer": "type::writers.defaults.Writer",
+    "optimizer": "type::optimizers.defaults.Optimizer",
+    "metric": "type::metrics.defaults.Metric",
+    "collectible": "type::collectibles.defaults.Collectible"
   }
 }

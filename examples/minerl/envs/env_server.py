@@ -250,7 +250,7 @@ def parse_args():
     parser.add_argument("--env", choices=["MineRLTreechop-v0", "MineRLObtainDiamond-v0", "MineRLObtainDiamondDense-v0"],
                         help="Environment name")
     parser.add_argument("--port", type=int, default=9999, help="server port")
-    parser.add_argument("--poolsize", type=int, default=4, help="number of environments to keep")
+    parser.add_argument("--poolsize", type=int, default=1, help="number of environments to keep")
     return parser.parse_args()
 
 
