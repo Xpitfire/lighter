@@ -108,3 +108,4 @@ venv.bak/
 /runs/
 /tmp/
 /examples/coco_looking/runs/
+/examples/coco_looking/tmp/
