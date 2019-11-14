@@ -9,7 +9,7 @@ from lighter.experiment import BaseExperiment
 
 
 class SimpleExperiment(BaseExperiment):
-    @strategy(config='configs/modules.config.json')
+    @strategy(config='configs/coco_looking.config.json')
     @config(path='experiments/defaults.config.json', property='experiment')
     def __init__(self):
         super(SimpleExperiment, self).__init__()
@@ -54,10 +54,11 @@ class SimpleExperiment(BaseExperiment):
                 'val_loss': collection['loss'],
                 'val_acc': collection['acc']
             }, ckpt_file)
-            config_file = os.path.join(path, '{}.json'.format(file_name))
-            self.config.save(config_file)
 
     def run(self, *args, **kwargs):
+        path = os.path.join(self.config.experiment.ckpt_dir, self.config.experiment_name)
+        config_file = os.path.join(path, 'experiment.config.json')
+        self.config.save(config_file)
         for epoch in tqdm(range(self.config.experiment.epochs)):
             self.train()
             self.eval()

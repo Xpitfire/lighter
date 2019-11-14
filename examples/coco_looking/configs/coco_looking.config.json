@@ -1,5 +1,3 @@
 {
-  "modules": {
-    "import_config": "import::configs/modules.config.json"
-  }
+  "import_config": "import::configs/resnet.modules.config.json"
 }
