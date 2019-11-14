@@ -1,4 +1,4 @@
-from lighter.decorator import device, experiment
+from lighter.decorator import device, reference
 
 
 class BaseExperiment(object):
@@ -6,7 +6,7 @@ class BaseExperiment(object):
     Experiment base class to create new algorithm runs.
     """
     @device
-    @experiment
+    @reference
     def __init__(self):
         pass
 

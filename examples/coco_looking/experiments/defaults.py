@@ -9,7 +9,7 @@ from lighter.experiment import BaseExperiment
 
 
 class SimpleExperiment(BaseExperiment):
-    @strategy(config='experiments/modules.config.json')
+    @strategy(config='configs/modules.config.json')
     @config(path='experiments/defaults.config.json', property='experiment')
     def __init__(self):
         super(SimpleExperiment, self).__init__()

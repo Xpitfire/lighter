@@ -112,10 +112,11 @@ def device(func=None, name: str = None, source: str = 'device.default', property
 
         # update device according to id
         if name is not None:
-            if not torch.cuda.is_available() or 'cpu' in name:
-                config.set_value(source, torch.device('cpu'))
-            else:
-                config.set_value(source, torch.device(name))
+            config.set_value(source, torch.device(name))
+        elif torch.cuda.is_available():
+            config.set_value(source, torch.device('cuda'))
+        else:
+            config.set_value(source, torch.device('cpu'))
 
         value = config.get_value(source)
         # if never set but called, then through exception
@@ -256,9 +257,9 @@ def register(type: str, property: str = None):
     return decorator
 
 
-def experiment(properties: list = None):
+def reference(properties: list = None):
     """
-    Experiment decorator to inject multiple values at once.
+    Reference decorator to inject multiple values at once without registering new objects.
     :param properties: Properties to inject.
     :return:
     """
@@ -276,9 +277,9 @@ def experiment(properties: list = None):
     return decorator
 
 
-def strategy(config: str, source: str = 'default', properties: list = None):
+def strategy(config: str, source: str = 'strategy', properties: list = None):
     """
-    Strategy decorator to inject the default training strategy instance.
+    Strategy decorator to inject a training strategy instance.
     :param source: defines the source name of the current training strategy
     :param config: property file for the current training strategy
     :param properties: names of the injection variable as specified in the config
