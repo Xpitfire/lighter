@@ -1,5 +1,5 @@
 {
-  "epochs": 50,
-  "enable_ckpts": false,
-  "ckpt_dir": "run/"
+  "epochs": 100,
+  "enable_ckpts": true,
+  "ckpt_dir": "runs/"
 }

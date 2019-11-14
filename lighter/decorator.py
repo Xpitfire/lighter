@@ -49,7 +49,7 @@ def _handle_config(args, path, source):
             config.set_value(source, imported_config)
         else:
             for k, v in imported_config.items():
-                setattr(config, k, imported_config)
+                setattr(config, k, v)
 
     setattr(instance, 'config', config)
 
@@ -59,6 +59,7 @@ def _handle_registration(source):
     context = Context.get_instance()
     parent, name = DotDict.resolve(config, source)
     types = getattr(parent, name)
+    types = {k: Loader.get_instance().import_path(v[len("type::"):]) for k, v in types.items()}
     context.instantiate_types(types)
 
 
@@ -112,11 +113,11 @@ def device(func=None, name: str = None, source: str = 'device.default', property
 
         # update device according to id
         if name is not None:
-            config.set_value(source, torch.device(name))
+            config.set_value(source, name)
         elif torch.cuda.is_available():
-            config.set_value(source, torch.device('cuda'))
+            config.set_value(source, 'cuda')
         else:
-            config.set_value(source, torch.device('cpu'))
+            config.set_value(source, 'cpu')
 
         value = config.get_value(source)
         # if never set but called, then through exception
@@ -244,6 +245,7 @@ def register(type: str, property: str = None):
 
             instance, key = DotDict.resolve(registry.instances, type)
             setattr(instance, key, type)
+
             registry.register_type(key, type)
             module = Loader.import_path(type)
             value = module()

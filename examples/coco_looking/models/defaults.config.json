@@ -1,5 +1,4 @@
 {
-  "device": "cpu",
   "output": 1,
   "preetrained": true,
   "freeze_pretrained": true,

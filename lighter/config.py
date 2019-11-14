@@ -21,12 +21,12 @@ def import_value_rec(name, value):
     # import classes if type:: reference was found in json
     if isinstance(value, str) and "type::" in value:
         try:
-            value = Loader.get_instance().import_path(value[len("type::"):])
+            type_ = Loader.get_instance().import_path(value[len("type::"):])
             res = Registry.get_instance().contains_type(name)
             # check if types where already registered
             if not res:
                 # register type to registry
-                Registry.get_instance().register_type(name, value)
+                Registry.get_instance().register_type(name, type_)
 
         except ModuleNotFoundError as e:
             logging.warning("Error while importing '{}' - {}".format(value, e))
@@ -104,6 +104,11 @@ class Config(DotDict):
             if override_args is not None:
                 self.override_from_commandline(override_args)
 
+    def save(self, file_name):
+        dict_str = json.dumps(self)
+        with open(file_name, 'w') as file:
+            file.write(dict_str)
+
     def set_value(self, name, value):
         """Sets the properties recursively according to a dot-separated reference.
         """
@@ -178,11 +183,11 @@ class Config(DotDict):
             Config._instance, args = Config.load(config_file, parse_args_override)
             # load default device
             if args is not None and args.device is not None:
-                Config._instance.set_value('device.default', torch.device(args.device))
+                Config._instance.set_value('device.default', args.device)
             elif torch.cuda.is_available():
-                Config._instance.set_value('device.default', torch.device('cuda'))
+                Config._instance.set_value('device.default', 'cuda')
             else:
-                Config._instance.set_value('device.default', torch.device('cpu'))
+                Config._instance.set_value('device.default', 'cpu')
             return Config._instance
         finally:
             Config._mutex.release()

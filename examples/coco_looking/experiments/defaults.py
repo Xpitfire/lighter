@@ -44,7 +44,9 @@ class SimpleExperiment(BaseExperiment):
         if self.config.experiment.enable_ckpts:
             collection = self.collectible.redux(func=np.mean)
             timestamp = datetime.timestamp(datetime.now())
-            ckpt_file = os.path.join(self.config.experiment.ckpt_dir, 'e-{}_time-{}.ckpt'.format(epoch, timestamp))
+            file_name = 'e-{}_time-{}'.format(epoch, timestamp)
+            path = os.path.join(self.config.experiment.ckpt_dir, self.config.experiment_name)
+            ckpt_file = os.path.join(path, '{}.ckpt'.format(file_name))
             torch.save({
                 'epoch': epoch,
                 'model_state_dict': self.model.state_dict(),
@@ -52,6 +54,8 @@ class SimpleExperiment(BaseExperiment):
                 'val_loss': collection['loss'],
                 'val_acc': collection['acc']
             }, ckpt_file)
+            config_file = os.path.join(path, '{}.json'.format(file_name))
+            self.config.save(config_file)
 
     def run(self, *args, **kwargs):
         for epoch in tqdm(range(self.config.experiment.epochs)):
