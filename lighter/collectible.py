@@ -4,7 +4,7 @@ from lighter.decorator import context
 from lighter.misc import DotDict
 
 
-class BaseCollectible:
+class BaseCollectible(object):
     """
     Base class for collectibles. They are used to store and update values over multiple steps / epochs.
     Collectibles are passed a dictionary containing key-value pairs whereas the key
@@ -21,17 +21,20 @@ class BaseCollectible:
         """
         self.collection = DotDict()
 
-    def update(self, **kwargs):
+    def update(self, category: str = None, **kwargs):
         """
         Updates a collectible key-value pair.
         Dict: {
             'name': <number>,
             ...
         }
+        :param category: defines a group category for the values
         :param kwargs: key-value data pair.
         :return:
         """
         for key, value in kwargs.items():
+            if category is not None:
+                key = '${}$_{}'.format(category, key)
             if key not in self.collection.keys():
                 self.collection[key] = []
             self.collection[key].append(value)

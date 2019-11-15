@@ -1,10 +1,9 @@
-import os
 import functools
 import logging
 import inspect
 import torch
 
-from typing import Tuple, List
+from typing import Tuple, List, Callable
 from enum import Enum
 from lighter.config import Config
 from lighter.context import Context
@@ -19,15 +18,9 @@ DEFAULT_PROPERTIES = ['transform', 'dataset', 'data_builder', 'model', 'optimize
                       'collectible', 'criterion', 'metric', 'writer']
 
 
-def _handle_injections(args, injectables):
-    config = Config.get_instance()
+def _handle_injections(args, injectables: List[str]):
     registry = Registry.get_instance()
-    search = ParameterSearch.get_instance()
     instance = args[0]
-
-    setattr(instance, 'config', config)
-    setattr(instance, 'registry', registry)
-    setattr(instance, 'search', search)
 
     for inject in injectables:
         parent, name = DotDict.resolve(registry.instances, inject)
@@ -35,22 +28,21 @@ def _handle_injections(args, injectables):
         if value is None:
             logging.error('Trying to inject dependency of unresolved key: {} into instance: {}'
                           .format(inject, instance))
-            raise DependencyInjectionError()
+            raise DependencyInjectionError('Inject: {} - Instance: {}'.format(inject, instance))
         setattr(instance, name, value)
 
 
 def _handle_config(args, path, source):
     config = Config.get_instance()
     instance = args[0]
-
     if path is not None:
         imported_config, _ = Config.load(path=path)
         if source is not None:
-            config.set_value(source, imported_config)
+            parent, name = DotDict.resolve(config, source)
+            setattr(parent, name, imported_config)
         else:
             for k, v in imported_config.items():
                 setattr(config, k, v)
-
     setattr(instance, 'config', config)
 
 
@@ -59,23 +51,15 @@ def _handle_registration(source):
     context = Context.get_instance()
     parent, name = DotDict.resolve(config, source)
     types = getattr(parent, name)
-    types = {k: Loader.get_instance().import_path(v[len("type::"):]) for k, v in types.items()}
+    types = {k: Loader.import_path(v[len("type::"):]) for k, v in types.items()}
     context.instantiate_types(types)
 
 
 def _wrapper_delegate(func, injectables):
-    """
-    Delegate wrapper to inject values.
-    :param func: original decorated function
-    :param injectables: name of the value to inject
-    :return:
-    """
-
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         _handle_injections(args, injectables)
         return func(*args, **kwargs)
-
     return wrapper
 
 
@@ -126,9 +110,7 @@ def device(func=None, name: str = None, source: str = 'device.default', property
             raise DependencyInjectionError()
 
         setattr(obj_instance, property, value)
-
         return func(*args, **kwargs)
-
     return wrapper
 
 
@@ -151,32 +133,29 @@ def config(func=None, path: str = None, property: str = None):
     def wrapper(*args, **kwargs):
         _handle_config(args, path, property)
         return func(*args, **kwargs)
-
     return wrapper
 
 
 def context(func):
     """
     Context decorator to inject the default context instance.
-    :param func: original function instance
+    :param func: original function do inject instances
     :return:
     """
-
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
+        context_ = Context.get_instance()
         config = Config.get_instance()
         registry = Registry.get_instance()
         search = ParameterSearch.get_instance()
         instance = args[0]
 
+        setattr(instance, 'context', context_)
         setattr(instance, 'config', config)
         setattr(instance, 'registry', registry)
         setattr(instance, 'search', search)
-
         return func(*args, **kwargs)
-
     return wrapper
-
 
 class InjectOption(Enum):
     Type = 0
@@ -193,7 +172,6 @@ def inject(source: str, property: str, option: InjectOption = InjectOption.Insta
     :param option: Option for the registry lookup.
     :return:
     """
-
     def decorator(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
@@ -227,11 +205,8 @@ def inject(source: str, property: str, option: InjectOption = InjectOption.Insta
                 raise DependencyInjectionError()
 
             setattr(obj_instance, property, value)
-
             return func(*args, **kwargs)
-
         return wrapper
-
     return decorator
 
 
@@ -254,28 +229,21 @@ def register(type: str, property: str = None):
             if property is not None:
                 setattr(obj_instance, property, value)
 
+            return func(*args, **kwargs)
         return wrapper
-
     return decorator
 
 
-def reference(properties: list = None):
-    """
-    Reference decorator to inject multiple values at once without registering new objects.
-    :param properties: Properties to inject.
-    :return:
-    """
-    if properties is None:
-        properties = DEFAULT_PROPERTIES
-
+def hook(method: str, replace_with: Callable, *args, **kwargs):
     def decorator(func):
         @functools.wraps(func)
-        def wrapper(*args, **kwargs):
-            _handle_injections(args, properties)
-            return func(*args, **kwargs)
-
+        def wrapper(*args_, **kwargs_):
+            result = func(*args_, **kwargs_)
+            instance = args_[0]
+            m = getattr(instance, method)
+            setattr(instance, method, lambda: replace_with(m, *args, **kwargs))
+            return result
         return wrapper
-
     return decorator
 
 
@@ -297,10 +265,37 @@ def strategy(config: str, source: str = 'strategy', properties: list = None):
             _handle_registration(source)
             _handle_injections(args, properties)
             return func(*args, **kwargs)
-
         return wrapper
-
     return decorator
+
+
+def reference(name: str):
+    """
+    Reference decorator to inject multiple values at once without registering new objects.
+    :param name: Property to inject.
+    :return:
+    """
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            _handle_injections(args, [name])
+            return func(*args, **kwargs)
+        return wrapper
+    return decorator
+
+
+def references(func=None, names: list = None):
+    """
+    Reference decorator to inject multiple values at once without registering new objects.
+    If no list is provided the default properties will be injected:
+    'transform', 'dataset', 'data_builder', 'model', 'optimizer', 'collectible', 'criterion', 'metric', 'writer'
+    :param func: original function instance
+    :param names: List of properties to inject.
+    :return:
+    """
+    if names is None:
+        names = DEFAULT_PROPERTIES
+    return _wrapper_delegate(func, names)
 
 
 def transform(func=None, properties: list = None):
@@ -316,7 +311,6 @@ def transform(func=None, properties: list = None):
     if not func:
         # workaround to enable empty decorator
         return functools.partial(dataset, properties=properties)
-
     return _wrapper_delegate(func, properties)
 
 
@@ -333,7 +327,6 @@ def dataset(func=None, properties: list = None):
     if not func:
         # workaround to enable empty decorator
         return functools.partial(dataset, properties=properties)
-
     return _wrapper_delegate(func, properties)
 
 
@@ -350,7 +343,6 @@ def model(func=None, properties: list = None):
     if not func:
         # workaround to enable empty decorator
         return functools.partial(model, properties=properties)
-
     return _wrapper_delegate(func, properties)
 
 
@@ -360,7 +352,6 @@ def search(params: List[Tuple[str, Parameter]] = None):
     :param params: list of tuples containing searchable parameters
     :return:
     """
-
     def decorator(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
@@ -373,9 +364,6 @@ def search(params: List[Tuple[str, Parameter]] = None):
                 for param in params:
                     if param[0] not in search:
                         setattr(search, param[0], param[1])
-
             return func(*args, **kwargs)
-
         return wrapper
-
     return decorator

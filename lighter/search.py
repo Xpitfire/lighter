@@ -16,8 +16,15 @@ class ParameterSearch(DotDict):
     def get_instance() -> "ParameterSearch":
         ParameterSearch._mutex.acquire()
         try:
-            if ParameterSearch._instance is None:
-                ParameterSearch._instance = ParameterSearch()
+            return ParameterSearch._instance
+        finally:
+            ParameterSearch._mutex.release()
+
+    @staticmethod
+    def create_instance() -> "ParameterSearch":
+        ParameterSearch._mutex.acquire()
+        try:
+            ParameterSearch._instance = ParameterSearch()
             return ParameterSearch._instance
         finally:
             ParameterSearch._mutex.release()

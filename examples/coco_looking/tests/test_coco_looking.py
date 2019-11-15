@@ -3,10 +3,11 @@ import unittest
 
 from lighter.config import Config
 from lighter.context import Context
-from lighter.decorator import inject, config, device, context, search, strategy, InjectOption
+from lighter.decorator import inject, config, device, context, search, strategy, InjectOption, reference, hook
+from lighter.experiment import DefaultExperiment
 from lighter.utils.io import create_template_file, get_lighter_path
 from lighter.parameter import GridParameter
-from examples.coco_looking.experiments.defaults import SimpleExperiment
+from examples.coco_looking.experiments.defaults import Experiment
 
 DEFAULT_CONFIG_FILE = 'configs/coco_looking.config.json'
 
@@ -16,18 +17,15 @@ class TestLighter(unittest.TestCase):
         Context.create(DEFAULT_CONFIG_FILE)
         config = Config.get_instance()
         # test if recursive import works
-        self.assertTrue(config.modules.model is not None and not isinstance(config.modules.model, str))
+        self.assertTrue(config.model is not None and not isinstance(config.model, str))
 
     def test_decorator(self):
-        Context.create(DEFAULT_CONFIG_FILE)
-        exp = SimpleExperiment()
+        Context.create()
+        exp = Experiment()
         self.assertTrue(exp.model is not None)
 
-    def test_experiment_config_injection(self):
-        exp = SimpleExperiment()
-        self.assertTrue(exp.config.experiment.epochs == 50)
-
     def test_package_resource_access(self):
+        Context.create()
         project_name = 'tmp'
         module = 'models'
         template = {'project': project_name}
@@ -35,19 +33,21 @@ class TestLighter(unittest.TestCase):
         self.assertTrue(os.path.exists('tmp/models/defaults.py'))
 
     def test_inject_decorator(self):
+        Context.create()
+
         class Demo:
-            @device(name='cuda:0')
+            @device(name='cpu')
             @config(path='tests/test_inject_decorator.json', property='modules')
             @inject(source='test', property='demo_model', option=InjectOption.Instance)
             def __init__(self):
                 pass
-        Context.create()
         demo = Demo()
         self.assertTrue(demo.config.modules is not None)
         self.assertTrue(demo.demo_model is not None)
         self.assertTrue(demo.device is not None)
 
     def test_search_iterator(self):
+        Context.create()
         assert_true = self.assertTrue
 
         class SearchExperiment:
@@ -66,16 +66,50 @@ class TestLighter(unittest.TestCase):
         exp.run()
 
     def test_strategy(self):
-        class Experiment:
-            @strategy(config='configs/modules.config.json')
+        Context.create()
+
+        class Demo:
+            @strategy(config='configs/alexnet.modules.config.json')
             def __init__(self):
                 pass
-        exp = Experiment()
+        exp = Demo()
         self.assertTrue(exp.model is not None)
 
     def test_lighter_init_path(self):
         exists, path = get_lighter_path('models', 'defaults.template')
         self.assertTrue(exists)
+
+    def test_reference(self):
+        Context.create(DEFAULT_CONFIG_FILE)
+
+        class Demo:
+            @reference(name='model')
+            def __init__(self):
+                pass
+        demo = Demo()
+        self.assertTrue(demo.model is not None)
+
+    def test_hook(self):
+        Context.create(DEFAULT_CONFIG_FILE)
+
+        class State:
+            def __init__(self):
+                self.success = False
+        s = State()
+
+        def alternative_run(ori, args):
+            args[0].success = True
+            print("replace method")
+
+        class Exp(DefaultExperiment):
+            @reference(name='model')
+            @hook(method='run', replace_with=alternative_run, args=[s])
+            def __init__(self):
+                super(Exp, self).__init__()
+
+        exp = Exp()
+        exp()
+        self.assertTrue(s.success)
 
 
 if __name__ == '__main__':

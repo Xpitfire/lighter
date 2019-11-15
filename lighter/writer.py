@@ -14,8 +14,14 @@ class BaseWriter(SummaryWriter):
                                          flush_secs=flush_secs, filename_suffix=filename_suffix)
         self.steps = 0
 
-    def write(self, *args, **kwargs):
-        pass
+    def write(self, category: str = None, *args, **kwargs):
+        for key, value in kwargs.items():
+            # remove collectible key prefix if available
+            key = key.split('$_')[-1]
+            # prepend category if available
+            if category is not None:
+                key = '{}/{}'.format(category, key)
+            self.add_scalar(key, value, self.steps)
 
     def step(self):
         self.steps += 1

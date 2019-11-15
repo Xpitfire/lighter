@@ -3,7 +3,6 @@ import traceback
 import logging
 
 from threading import RLock
-from lighter.exceptions import MultipleInstanceError
 from lighter.registry import Registry
 
 
@@ -12,17 +11,8 @@ class Loader(object):
     # mutex for threadsafe instance loading
     _mutex = RLock()
 
-    def __init__(self):
-        """
-        Creates a loader object which registers new modules.
-        """
-        self.registry = Registry.get_instance()
-        if Loader._instance is None:
-            Loader._instance = self
-        else:
-            raise MultipleInstanceError()
-
-    def import_modules(self, modules: dict):
+    @staticmethod
+    def import_modules(modules: dict):
         """
         Registers a dictionary of modules to the registry.
         :param modules: list of types
@@ -31,7 +21,7 @@ class Loader(object):
         for k, v in modules.items():
             if isinstance(v, str):
                 module = Loader.import_path(v)
-                setattr(self.registry.types, k, module)
+                setattr(Registry.get_instance().types, k, module)
 
     @staticmethod
     def import_path(name: str):
@@ -50,13 +40,3 @@ class Loader(object):
             logging.warning('Loader: Could not import: {} - {}'.format(name, e))
             logging.warning(tb)
         return type_
-
-    @staticmethod
-    def get_instance() -> "Loader":
-        Loader._mutex.acquire()
-        try:
-            if Loader._instance is None:
-                Loader._instance = Loader()
-            return Loader._instance
-        finally:
-            Loader._mutex.release()

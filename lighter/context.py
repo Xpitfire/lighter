@@ -1,6 +1,7 @@
+import petname
 from threading import RLock
-
 from lighter.config import Config
+from lighter.loader import Loader
 from lighter.registry import Registry
 from lighter.search import ParameterSearch
 
@@ -20,10 +21,11 @@ class Context(object):
         """
         Context._mutex.acquire()
         try:
+            self.registry = Registry.create_instance()
             self.config = Config.create_instance(config_file, parse_args_override)
-            self.registry = Registry.get_instance()
+            self.config.set_value('context_id', petname.Generate(2, '-', 6))
+            self.search = ParameterSearch.create_instance()
             self.instantiate_types(self.registry.types)
-            self.search = ParameterSearch.get_instance()
         finally:
             Context._mutex.release()
 
@@ -44,7 +46,7 @@ class Context(object):
             Context._mutex.release()
 
     @staticmethod
-    def create(config_file: str = None, parse_args_override: bool = True) -> None:
+    def create(config_file: str = None, parse_args_override: bool = True) -> "Context":
         """
         Create application context threadsafe.
         :param config_file: Initial config file for context to load.
@@ -54,5 +56,6 @@ class Context(object):
         Context._mutex.acquire()
         try:
             Context._instance = Context(config_file, parse_args_override)
+            return Context._instance
         finally:
             Context._mutex.release()

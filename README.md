@@ -15,7 +15,7 @@ Create a JSON file `config.json`:
 
 ```json
 {
-  "text": "hello world"
+  "num_of_epochs": 50
 }
 ```
 
@@ -28,7 +28,7 @@ class Demo:
         pass
     
     def run(self):
-        print(self.config.text)
+        print(self.config.num_of_epochs)
 
 # creates the application context
 Context.create()
@@ -40,7 +40,7 @@ Demo().run()
 This will print the following output:
 
 ```shell script
-[]: hello world
+[]: 50
 ```
 
 Lighter can be simply added to any existing project or one can create a new lighter template project as shown in the next section.
@@ -59,10 +59,6 @@ $> lighter-init <project-name>
 The above command will create the following project structure:
 ```text
 my_project:
-  * __init__.py
-  * collectibles
-    - __init__.py
-    - defaults.py
   * configs
     - modules.config.json
   * criterions
@@ -81,9 +77,6 @@ my_project:
     - __init__.py
     - defaults.config.json
     - defaults.py
-  * metrics
-    - __init__.py
-    - defaults.py
   * models
     - __init__.py
     - defaults.config.json
@@ -98,26 +91,26 @@ my_project:
   * transforms
     - __init__.py
     - defaults.py
-  * writers
-    - __init__.py
-    - defaults.config.json
-    - defaults.py
+  * __init__.py
+  * README.md
+  * LICENSE
+  * setup.py
 ```
 
 Of course this is only a preset example and the projects can be structured at will.
 
-### Structure description
-- collectibles: are used to gather metrics over multiple steps / epochs
-- criterions: torch criterion classes
-- data_builders: data builder classes creating the data loaders
-- datasets: dataset used by the data builder
-- experiments: experiment logic files containing the main `run()`, `train()` and `eval()` methods
-- metrics: metrics used to measure performance
-- modules: references all available modules
-- optimizers: optimizers used for performing the step
-- tests: contains the main testing sources for the project and mark the main entrance point
-- transforms: data transforms are used by the datasets to reshape the data structures
-- writers: tensorboard writers
+### Modules description
+- collectible: are used to gather metrics over multiple steps / epochs
+- criterion: torch criterion classes
+- data_builder: data builder classes creating the data loaders
+- dataset: dataset used by the data builder
+- experiment: experiment logic files containing the main `run()`, `train()` and `eval()` methods
+- metric: metrics used to measure performance
+- module: references all available modules
+- optimizer: optimizers used for performing the step
+- test: contains the main testing sources for the project and mark the main entrance point
+- transform: data transforms are used by the datasets to reshape the data structures
+- writer: tensorboard writers
 
 ### TODOs
 
@@ -173,27 +166,29 @@ It is also possible to simply use the required decorators without base class sub
 There are currently five decorators:
 * `@config` - injects the default config instance and allows to load new configs
 * `@context` - injects the application context which holds config and registry instances
-* `@dataset` - injects dataset instance
-* `@model` - injects model instance
-* `@reference` - injects a set of pre-set or defined instances
+* `@transform` - injects the data transform instance(s)
+* `@dataset` - injects the dataset instance(s)
+* `@model` - injects the model instance(s)
+* `@reference` - injects a singe defined instances
+* `@references` - injects a set of pre-set or defined instance(s)
 * `@strategy` - loads and defines a training set strategy from a config and injects the main object instances
-* `@inject` - allows to inject single instances from different context options (registry, types, instances, configs)
 * `@register` - allows to quickly register a new type to the context registry and inject the instance into the current instance
+* `@hook` - allows to hook and overwrite an existing method to change the execution logic
+* `@inject` - allows to inject single instances into different context options (registry, types, instances, configs)
 
-By default the templates for a new project are using these names for dependency injection `['dataset', 'data_builder', 'criterion', 'model', 'writer', 'optimizer', 'transfom', 'metric', 'collectible']` and are injecting the instances into the `experiments.Experiment` instance.
+By default the templates for a new project are creating a config file at the `configs/modules.config.json` path, which uses the following names for the dependency injection `['dataset', 'data_builder', 'criterion', 'model', 'writer', 'optimizer', 'transfom', 'metric', 'collectible']`.
+An experiment gets these instances automatically injected.
 ```json
 {
-    "modules": {
-        "transform": "type::datasets.defaults.Transform",
-        "dataset": "type::datasets.defaults.Dataset",
-        "data_builder": "type::data_builders.defaults.DataBuilder",
-        "criterion": "type::criterions.defaults.Criterion",
-        "model": "type::models.defaults.Model",
-        "writer": "type::writers.defaults.Writer",
-        "optimizer": "type::optimizers.defaults.Optimizer",
-        "metric": "type::metrics.defaults.Metric",
-        "collectible": "type::collectibles.defaults.Collectible"
-    }
+  "transform": "type::transforms.defaults.Transform",
+  "dataset": "type::datasets.defaults.Dataset",
+  "data_builder": "type::data_builders.defaults.DataBuilder",
+  "criterion": "type::criterions.defaults.Criterion",
+  "model": "type::models.defaults.Model",
+  "optimizer": "type::optimizers.defaults.Optimizer",
+  "metric": "type::lighter.metric.BaseMetric",
+  "collectible": "type::lighter.collectible.BaseCollectible",
+  "writer": "type::lighter.writer.BaseWriter"
 }
 ```
 

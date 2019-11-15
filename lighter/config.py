@@ -6,6 +6,7 @@ import logging
 
 import torch
 
+from lighter.exceptions import InvalidTypeReferenceError, TypeNameCollisionError
 from lighter.loader import Loader
 from lighter.misc import extract_named_args, try_to_number_or_bool, DotDict
 from lighter.registry import Registry
@@ -21,12 +22,15 @@ def import_value_rec(name, value):
     # import classes if type:: reference was found in json
     if isinstance(value, str) and "type::" in value:
         try:
-            type_ = Loader.get_instance().import_path(value[len("type::"):])
-            res = Registry.get_instance().contains_type(name)
+            type_ = Loader.import_path(value[len("type::"):])
+            if type_ is None:
+                raise InvalidTypeReferenceError('Config: Could not find specified reference: {}'.format(value))
             # check if types where already registered
-            if not res:
-                # register type to registry
-                Registry.get_instance().register_type(name, type_)
+            if Registry.get_instance().contains_type(name):
+                raise TypeNameCollisionError('Config: Could not load type, because another type '
+                                             'was already registered with the same name: {}'.format(name))
+            # register type to registry
+            Registry.get_instance().register_type(name, type_)
 
         except ModuleNotFoundError as e:
             logging.warning("Error while importing '{}' - {}".format(value, e))

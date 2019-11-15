@@ -42,8 +42,15 @@ class Registry(object):
     def get_instance() -> "Registry":
         Registry._mutex.acquire()
         try:
-            if Registry._instance is None:
-                Registry._instance = Registry()
+            return Registry._instance
+        finally:
+            Registry._mutex.release()
+
+    @staticmethod
+    def create_instance() -> "Registry":
+        Registry._mutex.acquire()
+        try:
+            Registry._instance = Registry()
             return Registry._instance
         finally:
             Registry._mutex.release()

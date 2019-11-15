@@ -13,6 +13,5 @@ from . import optimizer as optimizer
 from . import registry as registry
 from . import writer as writer
 from . import transform as transform
-from . import strategy as strategy
 from . import search as search
 from . import parameter as parameter
