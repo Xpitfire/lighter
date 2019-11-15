@@ -6,21 +6,22 @@ from lighter.model import BaseModule
 from lighter.parameter import GridParameter
 
 
-class AlexNetFeatureExtractionModel(BaseModule):
-    @config(path='models/alexnet.modules.config.json', property='model')
+class InceptionNetFeatureExtractionModel(BaseModule):
+    @config(path='models/inception.config.json', property='model')
     @search(params=[('hidden_units', GridParameter(ref='model.hidden_units', min=100, max=1000, step=100))])
     def __init__(self):
-        super(AlexNetFeatureExtractionModel, self).__init__()
-        self.alexnet = models.alexnet(pretrained=self.config.model.pretrained).to(self.device)
-        for param in self.alexnet.parameters():
+        super(InceptionNetFeatureExtractionModel, self).__init__()
+        self.inception = models.inception_v3(pretrained=self.config.model.pretrained,
+                                             aux_logits=self.config.model.aux_logits).to(self.device)
+        for param in self.inception.parameters():
             param.requires_grad = not self.config.model.freeze_pretrained
-        self.hidden = torch.nn.Linear(self.alexnet.classifier[-1].out_features,
+        self.hidden = torch.nn.Linear(self.inception.fc.out_features,
                                       self.config.model.hidden_units).to(self.device)
         self.final = torch.nn.Linear(self.config.model.hidden_units,
                                      self.config.model.output).to(self.device)
 
     def forward(self, x):
-        h = self.alexnet(x)
+        h = self.inception(x)
         h = self.hidden(h)
         h = self.final(h)
         return torch.sigmoid(h)
