@@ -157,6 +157,7 @@ def context(func):
         return func(*args, **kwargs)
     return wrapper
 
+
 class InjectOption(Enum):
     Type = 0
     Instance = 1
@@ -298,48 +299,52 @@ def references(func=None, names: list = None):
     return _wrapper_delegate(func, names)
 
 
-def transform(func=None, properties: list = None):
+def transform(func):
     """
     Transform decorator to inject the default transform instance.
     :param func: original function instance
-    :param properties: names of the injection variable as specified in the config
     :return:
     """
-    if properties is None:
-        properties = ['transform']
-
+    properties = ['transform']
     if not func:
         # workaround to enable empty decorator
         return functools.partial(dataset, properties=properties)
     return _wrapper_delegate(func, properties)
 
 
-def dataset(func=None, properties: list = None):
+def dataset(func):
     """
     Dataset decorator to inject the default dataset instance.
     :param func: original function instance
-    :param properties: names of the injection variable as specified in the config
     :return:
     """
-    if properties is None:
-        properties = ['dataset']
-
+    properties = ['dataset']
     if not func:
         # workaround to enable empty decorator
         return functools.partial(dataset, properties=properties)
     return _wrapper_delegate(func, properties)
 
 
-def model(func=None, properties: list = None):
+def model(func):
     """
     Model decorator to inject the default model instance.
     :param func: original function instance
-    :param properties: names of the injection variable as specified in the config
     :return:
     """
-    if properties is None:
-        properties = ['model']
+    properties = ['model']
+    if not func:
+        # workaround to enable empty decorator
+        return functools.partial(model, properties=properties)
+    return _wrapper_delegate(func, properties)
 
+
+def metric(func):
+    """
+    Metric decorator to inject the default metric instance.
+    :param func: original function instance
+    :return:
+    """
+    properties = ['metric']
     if not func:
         # workaround to enable empty decorator
         return functools.partial(model, properties=properties)

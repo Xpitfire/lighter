@@ -22,6 +22,9 @@ Create a JSON file `config.json`:
 Create a python file and use the decorators to inject the config instance:
 
 ```python
+# creates the application context
+Context.create()
+
 class Demo:
     @config(path='config.json', property='config')
     def __init__(self):
@@ -29,9 +32,6 @@ class Demo:
     
     def run(self):
         print(self.config.num_of_epochs)
-
-# creates the application context
-Context.create()
 
 # creates the object instance and injects the configs
 Demo().run()
@@ -132,7 +132,7 @@ $> PYTHONPATH=. python tests/test_experiment.py
 
 One can also simply change the global device setting or initialize an experiment from command line by specifying theses arguments:
 ```python
-PYTHONPATH=. python tests/test_experiment.py --device cuda:1 --config <path-to-config>
+$> PYTHONPATH=. python tests/test_experiment.py --device cuda:1 --config <path-to-config>
 ```
 
 ## Advanced
@@ -171,10 +171,11 @@ It is also possible to simply use the required decorators without base class sub
 There are currently five decorators:
 * `@config` - injects the default config instance and allows to load new configs
 * `@context` - injects the application context which holds config and registry instances
-* `@transform` - injects the data transform instance(s)
-* `@dataset` - injects the dataset instance(s)
-* `@model` - injects the model instance(s)
-* `@reference` - injects a singe defined instances
+* `@transform` - injects the default data transform instance
+* `@dataset` - injects the default dataset instance
+* `@model` - injects the default model instance
+* `metric` - injects the default metric instance
+* `@reference` - injects a singe defined instance
 * `@references` - injects a set of pre-set or defined instance(s)
 * `@strategy` - loads and defines a training set strategy from a config and injects the main object instances
 * `@register` - allows to quickly register a new type to the context registry and inject the instance into the current instance
@@ -200,11 +201,9 @@ An experiment gets these instances automatically injected.
 But it is simple to inject custom objects or exchangeable names by referring to a new name or type:
 ```json
 {
-    "modules": {
-        ...
-        "other_model_name": "type::models.defaults.Network",
-        ...
-    }
+  ...
+  "other_model_name": "type::models.other.Network",
+  ...
 }
 ```
 
@@ -212,7 +211,7 @@ This now allows to load a model using the `@model` decorator withe the new prope
 
 ```python
 class Demo:
-    @model(properties=['other_model_name'])
+    @references(properties=['other_model_name'])
     def __init__(self):
         ...
         self.other_model_name.<property>
