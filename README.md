@@ -160,7 +160,7 @@ class SimpleExperiment(DefaultExperiment):
             self.train()
             self.eval()
 ```
-In this example we use the `BaseExperiment` class and create a new experiment. 
+In this example we use the `DefaultExperiment` class and create a new experiment. 
 The `@config` decorator injects the `defaults.config.json` into the `self.config` instance in a sub-property `experiments` of the default config.
 One can then access the properties by de-referencing `self.config.experiments.<property>`.
 `self.model` and `self.metric` are injected by the base class and are usually referenced in the `modules/defaults.config.json`.
