@@ -130,6 +130,11 @@ It might be necessary to set your `PYTHONPATH` before running the experiment fil
 $> PYTHONPATH=. python tests/test_experiment.py
 ```
 
+One can also simply change the global device setting or initialize an experiment from command line by specifying theses arguments:
+```python
+PYTHONPATH=. python tests/test_experiment.py --device cuda:1 --config <path-to-config>
+```
+
 ## Advanced
 
 ### Inheritance from base class
