@@ -199,6 +199,8 @@ def inject(source: str, property: str, option: InjectOption = InjectOption.Insta
                 search = ParameterSearch.get_instance()
                 instance, key = DotDict.resolve(search, source)
                 value = getattr(instance, key, None)
+            else:
+                raise NotImplementedError()
 
             # if value is still None then through error, since it was never registered or failed to load
             if value is None:

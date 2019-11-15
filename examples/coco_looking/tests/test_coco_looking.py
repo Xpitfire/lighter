@@ -57,10 +57,11 @@ class TestLighter(unittest.TestCase):
                 self.config.set_value('test', 2)
 
             def run(self):
+                self.search.demo.update_config(self.config)
                 assert_true(self.search.demo.value == 2)
-                for i, param in enumerate(self.search.demo):
+                for i, config in enumerate(self.search.demo):
                     if i == 0:
-                        assert_true(param == 1)
+                        assert_true(config.test == 1)
                 assert_true(self.search.demo.value == 10)
         exp = SearchExperiment()
         exp.run()

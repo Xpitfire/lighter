@@ -19,6 +19,8 @@ class ResNetFeatureExtractionModel(BaseModule):
 
     def forward(self, x):
         h = self.resnet(x)
+        h = torch.relu(h)
         h = self.hidden(h)
+        h = torch.relu(h)
         h = self.final(h)
         return torch.sigmoid(h)

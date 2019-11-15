@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Callable, List
 from lighter.config import Config
 
 
@@ -8,7 +8,10 @@ class Parameter(object):
     """
     def __init__(self, ref):
         super(Parameter, self).__init__()
-        self.config = Config.get_instance()
+        config = Config.get_instance()
+        if config is None:
+            config = Config()
+        self.config = config.copy()
         self.ref = ref
 
     @property
@@ -18,6 +21,9 @@ class Parameter(object):
     @value.setter
     def value(self, value):
         self.config.set_value(self.ref, value)
+
+    def update_config(self, config):
+        self.config = config.copy()
 
 
 class GridParameter(Parameter):
@@ -36,9 +42,9 @@ class GridParameter(Parameter):
 
     def __next__(self):
         if self.value < self.max:
-            value = self.value
+            config = self.config.copy()
             self.value += self.step
-            return value
+            return config
         else:
             raise StopIteration
 
@@ -59,9 +65,9 @@ class CallableGridParameter(Parameter):
 
     def __next__(self):
         if self.value < self.max:
-            value = self.value
+            config = self.config.copy()
             self.value = self.step(self.value)
-            return value
+            return config
         else:
             raise StopIteration
 
@@ -81,9 +87,55 @@ class AnnealParameter(Parameter):
         return self
 
     def __next__(self):
-        if self.value > self.threshold:
-            value = self.value
+        if self.value >= self.threshold:
+            config = self.config.copy()
             self.value = self.anneal(self.value)
-            return value
+            return config
+        else:
+            raise StopIteration
+
+
+class BinaryParameter(Parameter):
+    """
+    Binary search parameter which returns true and false each once.
+    """
+    def __init__(self, ref: str):
+        super(BinaryParameter, self).__init__(ref)
+
+    def __iter__(self):
+        self.idx = 0
+        self.value = False
+        return self
+
+    def __next__(self):
+        if self.idx < 2:
+            config = self.config.copy()
+            self.value = True
+            self.idx += 1
+            return config
+        else:
+            raise StopIteration
+
+
+class StrategyParameter(Parameter):
+    """
+    Strategy parameters allow to iterate over different training strategies.
+    """
+    def __init__(self, ref: str, options: List[str]):
+        super(StrategyParameter, self).__init__(ref)
+        self.options = options
+
+    def __iter__(self):
+        self.idx = 0
+        return self
+
+    def __next__(self):
+        if self.idx < len(self.options):
+            config = self.config.copy()
+            imported_config = Config.load(path=self.options[self.idx])
+            for k, v in imported_config.items():
+                setattr(self.config, k, v)
+            self.idx += 1
+            return config
         else:
             raise StopIteration

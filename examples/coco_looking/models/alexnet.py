@@ -21,6 +21,8 @@ class AlexNetFeatureExtractionModel(BaseModule):
 
     def forward(self, x):
         h = self.alexnet(x)
+        h = torch.relu(h)
         h = self.hidden(h)
+        h = torch.relu(h)
         h = self.final(h)
         return torch.sigmoid(h)

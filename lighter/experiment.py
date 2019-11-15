@@ -20,6 +20,7 @@ class BaseExperiment(object):
                  enable_checkpoints: bool = True,
                  checkpoints_dir: str = 'runs/',
                  checkpoints_interval: int = 1):
+        self.epoch = 0
         self.epochs = epochs
         self.enable_checkpoints = enable_checkpoints
         self.checkpoints_dir = checkpoints_dir
@@ -29,11 +30,7 @@ class BaseExperiment(object):
         self.run()
 
     def __iter__(self):
-        self.epoch = 0
-        # save the new experiment config
-        path = os.path.join(self.checkpoints_dir, self.config.context_id)
-        config_file = os.path.join(path, 'experiment.config.json')
-        self.config.save(config_file)
+        self.initialize()
         return self
 
     def __next__(self):
@@ -46,6 +43,7 @@ class BaseExperiment(object):
             self.epoch += 1
             return self.epoch
         else:
+            self.finalize()
             raise StopIteration
 
     def run(self):
@@ -53,12 +51,27 @@ class BaseExperiment(object):
         Main entrance point for an experiment.
         :return:
         """
+        self.initialize()
         for epoch in tqdm(range(self.epochs)):
             self.pre_epoch()
             self.train()
             self.eval()
             self.checkpoint(epoch)
             self.post_epoch()
+        self.finalize()
+
+    def initialize(self):
+        """
+        Initialize the experiment phase.
+        :return:
+        """
+        self.epoch = 0
+        # save the new experiment config
+        path = os.path.join(self.checkpoints_dir, self.config.context_id)
+        if not os.path.exists(path):
+            os.makedirs(path)
+        config_file = os.path.join(path, 'experiment.config.json')
+        self.config.save(config_file)
 
     def pre_epoch(self):
         """
@@ -96,6 +109,13 @@ class BaseExperiment(object):
         :return:
         """
         raise NotImplementedError('BaseExperiment: No implementation found!')
+
+    def finalize(self):
+        """
+        Post experiment cleanup code.
+        :return:
+        """
+        pass
 
 
 class DefaultExperiment(BaseExperiment):
@@ -160,8 +180,6 @@ class DefaultExperiment(BaseExperiment):
             timestamp = datetime.timestamp(datetime.now())
             file_name = 'e-{}_time-{}'.format(epoch, timestamp)
             path = os.path.join(self.checkpoints_dir, self.config.context_id)
-            if not os.path.exists(path):
-                os.makedirs(path)
             ckpt_file = os.path.join(path, '{}.ckpt'.format(file_name))
             torch.save({
                 'epoch': epoch,

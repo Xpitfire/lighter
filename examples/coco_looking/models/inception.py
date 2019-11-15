@@ -22,6 +22,8 @@ class InceptionNetFeatureExtractionModel(BaseModule):
 
     def forward(self, x):
         h = self.inception(x)
+        h = torch.relu(h)
         h = self.hidden(h)
+        h = torch.relu(h)
         h = self.final(h)
         return torch.sigmoid(h)

@@ -108,6 +108,12 @@ class Config(DotDict):
             if override_args is not None:
                 self.override_from_commandline(override_args)
 
+    def copy(self) -> "Config":
+        config = Config()
+        dict_ = super().copy()
+        config.initialize_from_dict(dict_)
+        return config
+
     def save(self, file_name):
         dict_str = json.dumps(self)
         with open(file_name, 'w') as file:
@@ -130,6 +136,11 @@ class Config(DotDict):
         """
         parent, name = DotDict.resolve(self, name)
         return getattr(parent, name, default)
+
+    def initialize_from_dict(self, kv_pairs):
+        if kv_pairs:
+            for i, (name, value) in enumerate(kv_pairs.items()):
+                override(self, name, value)
 
     def initialize_from_json(self, nv_pairs=None):
         if nv_pairs:
