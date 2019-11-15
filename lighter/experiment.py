@@ -134,8 +134,9 @@ class DefaultExperiment(BaseExperiment):
                 loss = self.criterion(pred, y)
                 loss.backward()
                 self.optimizer.step()
-                self.collectible.update(category='train', **{'loss': loss.cpu()})
-                self.collectible.update(category='train', **self.metric(y.cpu(), pred.cpu()))
+                self.collectible.update(category='train', **{'loss': loss.detach().cpu().item()})
+                self.collectible.update(category='train', **self.metric(y.detach().cpu(),
+                                                                        pred.detach().cpu()))
             collection = self.collectible.redux(func=np.mean)
             self.writer.write(category='train', **collection)
 
@@ -147,8 +148,9 @@ class DefaultExperiment(BaseExperiment):
                     x, y = x.to(self.device), y.to(self.device)
                     pred = self.model(x)
                     loss = self.criterion(pred, y)
-                    self.collectible.update(category='val', **{'loss': loss.cpu()})
-                    self.collectible.update(category='val', **self.metric(y.cpu(), pred.cpu()))
+                    self.collectible.update(category='val', **{'loss': loss.detach().cpu().item()})
+                    self.collectible.update(category='val', **self.metric(y.detach().cpu(),
+                                                                          pred.detach().cpu()))
                 collection = self.collectible.redux(func=np.mean)
                 self.writer.write(category='eval', **collection)
 
@@ -157,12 +159,13 @@ class DefaultExperiment(BaseExperiment):
             collection = self.collectible.redux(func=np.mean)
             timestamp = datetime.timestamp(datetime.now())
             file_name = 'e-{}_time-{}'.format(epoch, timestamp)
-            path = os.path.join(self.config.experiment.ckpt_dir, self.config.context_id)
+            path = os.path.join(self.checkpoints_dir, self.config.context_id)
+            if not os.path.exists(path):
+                os.makedirs(path)
             ckpt_file = os.path.join(path, '{}.ckpt'.format(file_name))
             torch.save({
                 'epoch': epoch,
                 'model_state_dict': self.model.state_dict(),
                 'optimizer_state_dict': self.optimizer.state_dict(),
-                'val_loss': collection['loss'],
-                'val_acc': collection['acc']
+                'metrics': collection
             }, ckpt_file)
