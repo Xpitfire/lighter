@@ -136,10 +136,10 @@ $> PYTHONPATH=. python tests/test_experiment.py
 
 One can simply extend from any base class within the lighter framework:
 ```python
-class SimpleExperiment(BaseExperiment):
+class SimpleExperiment(DefaultExperiment):
     @config(path='experiments/defaults.config.json', property='experiments')
     def __init__(self):
-        super(SimpleExperiment, self).__init__()
+        super(SimpleExperiment, self).__init__(epochs=self.config.experiments.num_epochs)
 
     def eval(self):
         ...
@@ -151,7 +151,7 @@ class SimpleExperiment(BaseExperiment):
         ...
 
     def run(self):
-        for epoch in self.config.experiments.num_epochs:
+        for epoch in self.epochs:
             self.train()
             self.eval()
 ```
