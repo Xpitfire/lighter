@@ -353,12 +353,11 @@ def metric(func):
     return _wrapper_delegate(func, properties)
 
 
-def search(group: str = None, params: List[Tuple[str, Parameter]] = None, modules: str = None):
+def search(group: str = None, params: List[Tuple[str, Parameter]] = None):
     """
     Decorator for searching hyper-parameters.
     :param group: collects the params to search only in an grouped logical search space
     :param params: list of tuples containing searchable parameters
-    :param modules: path of config loading all required modules for training
     :return:
     """
     def decorator(func):
@@ -368,7 +367,7 @@ def search(group: str = None, params: List[Tuple[str, Parameter]] = None, module
             instance = args[0]
 
             setattr(instance, 'search', search)
-            if group is None and params is None and modules is None:
+            if group is None and params is None:
                 return func(*args, **kwargs)
 
             if group is None:
@@ -382,7 +381,6 @@ def search(group: str = None, params: List[Tuple[str, Parameter]] = None, module
             if params is not None:
                 for param in params:
                     property[param[0]] = param[1]
-                property['modules'] = modules
             return func(*args, **kwargs)
         return wrapper
     return decorator

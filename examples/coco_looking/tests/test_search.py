@@ -30,9 +30,9 @@ class SearchExperiment:
             obj = self.search[group]
             if isinstance(obj, dict):
                 for key in obj.keys():
-                    if isinstance(obj, Parameter):
+                    if issubclass(type(obj[key]), Parameter):
                         param = obj[key]
-                    print(param)
+                        print(param)
 
 
 if __name__ == '__main__':
