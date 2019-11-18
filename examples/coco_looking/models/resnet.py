@@ -1,14 +1,12 @@
 import torch
 from torchvision import models
 
-from lighter.decorator import config, search
+from lighter.decorator import config
 from lighter.model import BaseModule
-from lighter.parameter import GridParameter
 
 
 class ResNetFeatureExtractionModel(BaseModule):
     @config(path='models/resnet.config.json', property='model')
-    @search(params=[('hidden_units', GridParameter(ref='model.hidden_units', min=100, max=1000, step=100))])
     def __init__(self):
         super(ResNetFeatureExtractionModel, self).__init__()
         self.resnet = models.resnet18(pretrained=self.config.model.pretrained).to(self.device)
