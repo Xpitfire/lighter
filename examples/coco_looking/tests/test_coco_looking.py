@@ -40,7 +40,9 @@ class TestLighter(unittest.TestCase):
             @config(path='tests/test_inject_decorator.json', property='modules')
             @inject(source='test', property='demo_model', option=InjectOption.Instance)
             def __init__(self):
-                pass
+                # trick to help the auto-completion interpret the type at design-time
+                self.demo_model = self.demo_model  # type: models.alexnet.AlexNetFeatureExtractionModel
+
         demo = Demo()
         self.assertTrue(demo.config.modules is not None)
         self.assertTrue(demo.demo_model is not None)
