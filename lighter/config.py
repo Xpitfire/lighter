@@ -26,9 +26,9 @@ def import_value_rec(name, value):
             if type_ is None:
                 raise InvalidTypeReferenceError('Config: Could not find specified reference: {}'.format(value))
             # check if types where already registered
-            if Registry.get_instance().contains_type(name):
-                raise TypeNameCollisionError('Config: Could not load type, because another type '
-                                             'was already registered with the same name: {}'.format(name))
+            # if Registry.get_instance().contains_type(name):
+            #     raise TypeNameCollisionError('Config: Could not load type, because another type '
+            #                                  'was already registered with the same name: {}'.format(name))
             # register type to registry
             Registry.get_instance().register_type(name, type_)
 

@@ -39,12 +39,15 @@ class DotDict(dict):
         return name in self
 
     @staticmethod
-    def resolve(parent, name):
-        prev_parent = parent
-        groups = name.split('.')
+    def resolve(parent_ori, name_ori):
+        parent = parent_ori
+        prev_parent = parent_ori
+        groups = name_ori.split('.')
         for group in groups[:-1]:
             parent = parent.get_value(group)
             if parent is None:
                 parent = DotDict()
                 setattr(prev_parent, group, parent)
+        if not isinstance(parent, DotDict):
+            return parent_ori, name_ori
         return parent, groups[-1]

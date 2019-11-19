@@ -1,5 +1,7 @@
+import os
 from typing import Callable, List
 from lighter.config import Config
+from lighter.misc import DotDict
 
 
 class Parameter(object):
@@ -13,6 +15,16 @@ class Parameter(object):
             config = Config()
         self.config = config.copy()
         self.ref = ref
+        self.compilation: List[Config] = []
+
+    def __iter__(self):
+        raise NotImplementedError('Parameter: No implementation found!')
+
+    def __next__(self):
+        raise NotImplementedError('Parameter: No implementation found!')
+
+    def list_values(self):
+        raise NotImplementedError('Parameter: No implementation found!')
 
     @property
     def value(self):
@@ -48,6 +60,9 @@ class GridParameter(Parameter):
         else:
             raise StopIteration
 
+    def list_values(self):
+        return list([self.min + i * self.step for i in range(int((self.max - self.min) // self.step))])
+
 
 class CallableGridParameter(Parameter):
     """
@@ -71,6 +86,14 @@ class CallableGridParameter(Parameter):
         else:
             raise StopIteration
 
+    def list_values(self):
+        val = self.min
+        values = [val]
+        while val < self.max:
+            val = self.step(val)
+            values.append(val)
+        return values
+
 
 class AnnealParameter(Parameter):
     """
@@ -80,6 +103,7 @@ class AnnealParameter(Parameter):
         super(AnnealParameter, self).__init__(ref)
         self.start = start
         self.threshold = threshold
+        assert self.start >= self.threshold
         self.anneal = anneal
 
     def __iter__(self):
@@ -93,6 +117,14 @@ class AnnealParameter(Parameter):
             return config
         else:
             raise StopIteration
+
+    def list_values(self):
+        val = self.start
+        values = [val]
+        while val >= self.threshold:
+            val = self.anneal(val)
+            values.append(val)
+        return values
 
 
 class BinaryParameter(Parameter):
@@ -116,6 +148,9 @@ class BinaryParameter(Parameter):
         else:
             raise StopIteration
 
+    def list_values(self):
+        return [True, False]
+
 
 class StrategyParameter(Parameter):
     """
@@ -132,10 +167,13 @@ class StrategyParameter(Parameter):
     def __next__(self):
         if self.idx < len(self.options):
             config = self.config.copy()
-            imported_config = Config.load(path=self.options[self.idx])
+            imported_config, _ = Config.load(path=os.path.join(self.ref, self.options[self.idx]))
             for k, v in imported_config.items():
                 setattr(self.config, k, v)
             self.idx += 1
             return config
         else:
             raise StopIteration
+
+    def list_values(self):
+        return self.options
