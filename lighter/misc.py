@@ -59,6 +59,6 @@ class DotDict(dict):
             if parent is None:
                 parent = DotDict()
                 setattr(prev_parent, group, parent)
-        if not isinstance(parent, DotDict):
-            return parent_ori, name_ori
+            else:
+                prev_parent = parent
         return parent, groups[-1]

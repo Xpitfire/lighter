@@ -1,4 +1,5 @@
 import os
+import shutil
 from lighter.search import ParameterSearch
 from lighter.decorator import context
 from lighter.parameter import Parameter
@@ -8,8 +9,9 @@ class ParameterParser:
     @context
     def __init__(self, output_path: str = 'runs/search'):
         self.output_path = output_path
-        if not os.path.exists(output_path):
-            os.makedirs(output_path)
+        if os.path.exists(output_path):
+            shutil.rmtree(self.output_path, ignore_errors=False, onerror=None)
+        os.makedirs(self.output_path)
 
     def run(self):
         for group in self.search.keys():

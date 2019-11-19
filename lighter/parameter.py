@@ -54,7 +54,7 @@ class GridParameter(Parameter):
         return self
 
     def __next__(self):
-        if self.value < self.max:
+        if self.value <= self.max:
             config = self.config.copy()
             self.value += self.step
             return config
@@ -80,7 +80,7 @@ class CallableGridParameter(Parameter):
         return self
 
     def __next__(self):
-        if self.value < self.max:
+        if self.value <= self.max:
             config = self.config.copy()
             self.value = self.step(self.value)
             return config
@@ -168,9 +168,8 @@ class StrategyParameter(Parameter):
     def __next__(self):
         if self.idx < len(self.options):
             config = self.config.copy()
-            imported_config, _ = Config.load(path=os.path.join(self.ref, self.options[self.idx]))
-            for k, v in imported_config.items():
-                setattr(self.config, k, v)
+            imported_config, _ = Config.load(path=self.options[self.idx])
+            config[self.ref] = imported_config
             self.idx += 1
             return config
         else:

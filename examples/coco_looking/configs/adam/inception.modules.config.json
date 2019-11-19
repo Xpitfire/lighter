@@ -4,7 +4,7 @@
   "data_builder": "type::data_builders.defaults.DataBuilder",
   "criterion": "type::criterions.defaults.Criterion",
   "model": "type::models.inception.InceptionNetFeatureExtractionModel",
-  "optimizer": "type::optimizers.defaults.Optimizer",
+  "optimizer": "type::optimizers.adam.Optimizer",
   "metric": "type::lighter.metric.BaseMetric",
   "collectible": "type::lighter.collectible.BaseCollectible",
   "writer": "type::lighter.writer.BaseWriter"
