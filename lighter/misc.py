@@ -1,3 +1,6 @@
+import petname
+
+
 def extract_named_args(arg_list):
     result = {}
     for i in range(0, len(arg_list)):
@@ -21,6 +24,14 @@ def try_to_number_or_bool(value):
                 value = (value.lower() == "true")
             pass
     return value
+
+
+def generate_short_id():
+    return petname.Generate(2, '-', 6)
+
+
+def generate_long_id():
+    return petname.Generate(3, '-', 6)
 
 
 class DotDict(dict):

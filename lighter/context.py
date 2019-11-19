@@ -1,7 +1,6 @@
-import petname
 from threading import RLock
 from lighter.config import Config
-from lighter.loader import Loader
+from lighter.misc import generate_short_id
 from lighter.registry import Registry
 from lighter.search import ParameterSearch
 
@@ -23,7 +22,7 @@ class Context(object):
         try:
             self.registry = Registry.create_instance()
             self.config = Config.create_instance(config_file, parse_args_override)
-            self.config.set_value('context_id', petname.Generate(2, '-', 6))
+            self.config.set_value('context_id', generate_short_id())
             self.search = ParameterSearch.create_instance()
             self.instantiate_types(self.registry.types)
         finally:

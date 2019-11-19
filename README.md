@@ -181,6 +181,7 @@ There are currently five decorators:
 * `@register` - allows to quickly register a new type to the context registry and inject the instance into the current instance
 * `@hook` - allows to hook and overwrite an existing method to change the execution logic
 * `@inject` - allows to inject single instances into different context options (registry, types, instances, configs)
+* `@search` - allows to register hyper-parameters to parse a config schedule for parallelled executions
 
 By default the templates for a new project are creating a config file at the `configs/modules.config.json` path, which uses the following names for the dependency injection `['dataset', 'data_builder', 'criterion', 'model', 'writer', 'optimizer', 'transfom', 'metric', 'collectible']`.
 An experiment gets these instances automatically injected.

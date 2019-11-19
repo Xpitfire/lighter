@@ -115,7 +115,7 @@ class Config(DotDict):
         return config
 
     def save(self, file_name):
-        dict_str = json.dumps(self)
+        dict_str = json.dumps(self, indent=2)
         with open(file_name, 'w') as file:
             file.write(dict_str)
 

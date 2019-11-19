@@ -353,7 +353,7 @@ def metric(func):
     return _wrapper_delegate(func, properties)
 
 
-def search(group: str = None, params: List[Tuple[str, Parameter]] = None):
+def search(group: str, params: List[Tuple[str, Parameter]]):
     """
     Decorator for searching hyper-parameters.
     :param group: collects the params to search only in an grouped logical search space

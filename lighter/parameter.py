@@ -1,7 +1,7 @@
 import os
 from typing import Callable, List
 from lighter.config import Config
-from lighter.misc import DotDict
+from lighter.misc import generate_long_id
 
 
 class Parameter(object):
@@ -36,6 +36,7 @@ class Parameter(object):
 
     def update_config(self, config):
         self.config = config.copy()
+        self.config['experiment_id'] = generate_long_id()
 
 
 class GridParameter(Parameter):
