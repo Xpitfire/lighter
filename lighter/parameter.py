@@ -65,6 +65,31 @@ class GridParameter(Parameter):
         return list([self.min + i * self.step for i in range(int((self.max - self.min) // self.step))])
 
 
+class ListParameter(Parameter):
+    """
+    List search parameter, which takes in a list of options and iterates them.
+    """
+    def __init__(self, ref: str, options: List):
+        super(ListParameter, self).__init__(ref)
+        self.options = options
+
+    def __iter__(self):
+        self.idx = 0
+        return self
+
+    def __next__(self):
+        if self.idx < len(self.options):
+            self.value = self.options[self.idx]
+            config = self.config.copy()
+            self.idx += 1
+            return config
+        else:
+            raise StopIteration
+
+    def list_values(self):
+        return self.options
+
+
 class CallableGridParameter(Parameter):
     """
     Grid search parameter with lambda function based step sizes which allows non linear changes.

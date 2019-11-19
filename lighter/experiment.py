@@ -5,6 +5,7 @@ import numpy as np
 from tqdm import tqdm
 from datetime import datetime
 from lighter.decorator import device, references, context
+from lighter.misc import generate_long_id
 
 
 class BaseExperiment(object):
@@ -16,10 +17,14 @@ class BaseExperiment(object):
     @device
     @context
     def __init__(self,
+                 experiment_id: str = None,
                  epochs: int = 100,
                  enable_checkpoints: bool = True,
                  checkpoints_dir: str = 'runs/',
                  checkpoints_interval: int = 1):
+        if experiment_id is None:
+            experiment_id = generate_long_id()
+        self.config['experiment_id'] = experiment_id
         self.epoch = 0
         self.epochs = epochs
         self.enable_checkpoints = enable_checkpoints
@@ -126,11 +131,13 @@ class DefaultExperiment(BaseExperiment):
     @context
     @references
     def __init__(self,
+                 experiment_id: str = None,
                  epochs: int = 100,
                  enable_checkpoints: bool = True,
                  checkpoints_dir: str = 'runs/',
                  checkpoints_interval: int = 1):
-        super(DefaultExperiment, self).__init__(epochs=epochs,
+        super(DefaultExperiment, self).__init__(experiment_id=experiment_id,
+                                                epochs=epochs,
                                                 enable_checkpoints=enable_checkpoints,
                                                 checkpoints_dir=checkpoints_dir,
                                                 checkpoints_interval=checkpoints_interval)
