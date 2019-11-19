@@ -1,10 +1,9 @@
 import os
 import torch
 import numpy as np
-
 from tqdm import tqdm
 from datetime import datetime
-from lighter.decorator import device, references, context
+from lighter.decorator import device, context
 from lighter.misc import generate_long_id
 
 
@@ -129,7 +128,6 @@ class DefaultExperiment(BaseExperiment):
     """
     @device
     @context
-    @references
     def __init__(self,
                  experiment_id: str = None,
                  epochs: int = 100,
@@ -141,8 +139,12 @@ class DefaultExperiment(BaseExperiment):
                                                 enable_checkpoints=enable_checkpoints,
                                                 checkpoints_dir=checkpoints_dir,
                                                 checkpoints_interval=checkpoints_interval)
+        self.train_loader, self.val_loader = None, None
+
+    def initialize(self):
         # get data loaders
         self.train_loader, self.val_loader = self.data_builder.loader()
+        super().initialize()
 
     def pre_epoch(self):
         pass

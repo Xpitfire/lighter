@@ -64,7 +64,7 @@ class TestLighter(unittest.TestCase):
                 for i, config in enumerate(self.search.demo):
                     if i == 0:
                         assert_true(config.test == 1)
-                assert_true(self.search.demo.value == 10)
+                assert_true(self.search.demo.value == 11)
         exp = SearchExperiment()
         exp.run()
 
