@@ -185,12 +185,15 @@ class Config(DotDict):
                 override(self, name, value)
 
     @staticmethod
-    def create_instance(config_file: str = None, parse_args_override: bool = True) -> "Config":
+    def create_instance(config_file: str = None,
+                        parse_args_override: bool = True,
+                        device: str = None) -> "Config":
         """
         Create default config instance. Loads the command line overridable config settings and
         sets the default device instance.
         :param config_file: path to config file
         :param parse_args_override: override
+        :param device: training device
         :return:
         """
         Config._mutex.acquire()
@@ -199,6 +202,8 @@ class Config(DotDict):
             # load default device
             if args is not None and args.device is not None:
                 Config._instance.set_value('device.default', args.device)
+            elif device is not None:
+                Config._instance.set_value('device.default', device)
             elif torch.cuda.is_available():
                 Config._instance.set_value('device.default', 'cuda')
             else:

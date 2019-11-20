@@ -11,7 +11,7 @@ install_requires = requirements["install"]
 
 setup(
     # Metadata
-    name="minerl",
+    name="coco_looking",
     author="Your name",
     version="0.0.0",
     author_email="",

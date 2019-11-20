@@ -98,10 +98,6 @@ def device(func=None, name: str = None, source: str = 'device.default', property
         # update device according to id
         if name is not None:
             config.set_value(source, name)
-        elif torch.cuda.is_available():
-            config.set_value(source, 'cuda')
-        else:
-            config.set_value(source, 'cpu')
 
         value = config.get_value(source)
         # if never set but called, then through exception

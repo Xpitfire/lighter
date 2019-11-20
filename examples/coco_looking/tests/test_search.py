@@ -2,7 +2,6 @@ from lighter.experiment import DefaultExperiment
 from lighter.parser import ParameterParser
 from lighter.context import Context
 from lighter.parameter import GridParameter, BinaryParameter, StrategyParameter, ListParameter
-
 from lighter.decorator import search, strategy
 
 

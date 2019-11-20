@@ -13,7 +13,10 @@ class Context(object):
     _mutex = RLock()
     _instance = None
 
-    def __init__(self, config_file: str, parse_args_override, instantiate_types: bool = True):
+    def __init__(self, config_file: str,
+                 parse_args_override,
+                 instantiate_types: bool = True,
+                 device: str = None):
         """
         Create a context object and registers configs, types and instances of the defined modules.
         :param config_file: default config file
@@ -21,7 +24,9 @@ class Context(object):
         Context._mutex.acquire()
         try:
             self.registry = Registry.create_instance()
-            self.config = Config.create_instance(config_file, parse_args_override)
+            self.config = Config.create_instance(config_file,
+                                                 parse_args_override=parse_args_override,
+                                                 device=device)
             self.config.set_value('context_id', generate_short_id())
             self.search = ParameterSearch.create_instance()
             if instantiate_types:
@@ -48,19 +53,22 @@ class Context(object):
     @staticmethod
     def create(config_file: str = None,
                parse_args_override: bool = True,
-               instantiate_types: bool = True) -> "Context":
+               instantiate_types: bool = True,
+               device: str = None) -> "Context":
         """
         Create application context threadsafe.
         :param config_file: Initial config file for context to load.
         :param parse_args_override: Allows to override configs according to the command line arguments.
         :param instantiate_types: Instantiates types after been registered
+        :param device: specifies the running device
         :return:
         """
         Context._mutex.acquire()
         try:
             Context._instance = Context(config_file,
                                         parse_args_override=parse_args_override,
-                                        instantiate_types=instantiate_types)
+                                        instantiate_types=instantiate_types,
+                                        device=device)
             return Context._instance
         finally:
             Context._mutex.release()

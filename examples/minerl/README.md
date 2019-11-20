@@ -1,3 +1,3 @@
-### minerl
+### MineRL
 
 Describe your project.

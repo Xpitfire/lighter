@@ -1,13 +1,16 @@
+import torch
 from lighter.scheduler import Scheduler
 
+
+def worker(*args):
+    print(args)
+
+
 if __name__ == '__main__':
-    scheduler = Scheduler(path='runs/search/amused-frog',
-                          experiment='lighter.experiment.DefaultExperiment')
-    schedules = []
-    for i, s in enumerate(scheduler):
-        schedules.append(s)
-        if i > 3:
-            break
-    assert schedules[0].config != schedules[1].config
-    assert schedules[0].config != schedules[-1].config
-    assert schedules[1].config != schedules[-1].config
+    num_devices = torch.cuda.device_count()
+    scheduler = Scheduler(path='runs/search/witty-tomcat',
+                          experiment='lighter.experiment.DefaultExperiment',
+                          device_name='cuda',
+                          num_worker=num_devices)
+    scheduler.run()
+
