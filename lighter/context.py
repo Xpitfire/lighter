@@ -17,7 +17,9 @@ class Context(object):
     _mutex = RLock()
     _instance = None
 
-    def __init__(self, config_file: str,
+    def __init__(self,
+                 config_file: str,
+                 config_dict: dict,
                  parse_args_override,
                  instantiate_types: bool = True,
                  device: str = None):
@@ -29,6 +31,7 @@ class Context(object):
         try:
             self.registry = Registry.create_instance()
             self.config = Config.create_instance(config_file,
+                                                 config_dict=config_dict,
                                                  parse_args_override=parse_args_override,
                                                  device=device)
             self.config.set_value('context_id', generate_short_id())
@@ -56,12 +59,14 @@ class Context(object):
 
     @staticmethod
     def create(config_file: str = None,
+               config_dict: dict = None,
                parse_args_override: bool = True,
                instantiate_types: bool = True,
                device: str = None) -> "Context":
         """
         Create application context threadsafe.
         :param config_file: Initial config file for context to load.
+        :param config_dict: Initial config json for context to load.
         :param parse_args_override: Allows to override configs according to the command line arguments.
         :param instantiate_types: Instantiates types after been registered
         :param device: specifies the running device
@@ -70,6 +75,7 @@ class Context(object):
         Context._mutex.acquire()
         try:
             Context._instance = Context(config_file,
+                                        config_dict=config_dict,
                                         parse_args_override=parse_args_override,
                                         instantiate_types=instantiate_types,
                                         device=device)

@@ -3,9 +3,8 @@ import os
 import argparse
 from threading import RLock
 import logging
-
 import torch
-
+from box import Box
 from lighter.exceptions import InvalidTypeReferenceError
 from lighter.loader import Loader
 from lighter.misc import extract_named_args, try_to_number_or_bool, DotDict
@@ -37,8 +36,8 @@ def import_value_rec(name, value):
     # import config if config:: reference was found in json
     elif isinstance(value, str) and "config::" in value:
         try:
-            conf = Config(value[len("config::"):])
-            conf = DotDict(conf)
+            conf = Config(path=value[len("config::"):])
+            conf = Box(conf)
             conf['config_path'] = value[len("config::"):]
             value = conf
         except ModuleNotFoundError as e:
@@ -47,7 +46,7 @@ def import_value_rec(name, value):
     elif isinstance(value, dict):
         for k, v in value.items():
             value[k] = import_value_rec(k, v)
-        value = DotDict(value)
+        value = Box(value)
 
     return value
 
@@ -63,13 +62,13 @@ def override(parent, name, value):
     if value is not None:
         # import key-values into the current property instance
         if isinstance(value, str) and "import::" in value:
-            conf = Config(value[len("import::"):])
-            for k, v in DotDict(conf).items():
+            conf = Config(path=value[len("import::"):])
+            for k, v in Box(conf).items():
                 setattr(parent, k, v)
                 logging.info("Config: {}={}".format(k, getattr(parent, k)))
         # decent down the dictionary instance
         elif isinstance(value, dict):
-            dict_ = DotDict(value)
+            dict_ = Box(value)
             for k, v in dict_.copy().items():
                 override(dict_, k, v)
                 # remove old import:: reference after import
@@ -82,27 +81,26 @@ def override(parent, name, value):
             logging.info("Config: {}={}".format(name, getattr(parent, name)))
 
 
-class Config(DotDict):
+class Config(Box):
     _instance = None
     # thread save lock to ensure single instance creation for the default config
     _mutex = RLock()
 
-    def __init__(self, filename: str = None, override_args=None, **kwargs):
+    def __init__(self, path: str = None, override_args=None, **kwargs):
         """
         Create config object from json file.
 
-        ATTENTION: Only register types but never instantiate class objects in the config instance, since they might
-        require the config context before it has every been built!
-
-        :param filename: optional;
+        :param path: optional;
             If passed read config from specified file, otherwise parse command line for config parameter and optionally
             override arguments.
         :param override_args: args to override the current properties
         """
-        super(Config, self).__init__(**kwargs)
+        super(Config, self).__init__()
+        if kwargs:
+            self.initialize_from_json(kwargs.items())
         # Read config and override with args if passed
-        if filename is not None and os.path.exists(filename):
-            with open(filename) as f:
+        if path is not None and os.path.exists(path):
+            with open(path) as f:
                 self.initialize_from_json(json.loads(f.read()).items())
             # override if necessary
             if override_args is not None:
@@ -186,19 +184,25 @@ class Config(DotDict):
 
     @staticmethod
     def create_instance(config_file: str = None,
+                        config_dict: dict = None,
                         parse_args_override: bool = True,
                         device: str = None) -> "Config":
         """
         Create default config instance. Loads the command line overridable config settings and
         sets the default device instance.
         :param config_file: path to config file
+        :param config_dict: pre-configs
         :param parse_args_override: override
         :param device: training device
         :return:
         """
+        if config_dict is None:
+            config_dict = {}
         Config._mutex.acquire()
         try:
-            Config._instance, args = Config.load(config_file, parse_args_override)
+            Config._instance, args = Config.load(path=config_file,
+                                                 parse_args_override=parse_args_override,
+                                                 **config_dict)
             # load default device
             if args is not None and args.device is not None:
                 Config._instance.set_value('device.default', args.device)
@@ -225,7 +229,7 @@ class Config(DotDict):
             Config._mutex.release()
 
     @staticmethod
-    def load(path: str = None, parse_args_override: bool = False):
+    def load(path: str = None, parse_args_override: bool = False, **kwargs):
         """
         Loads a property file and allows to override arguments based on command line overrides.
         :param path: path to property file
@@ -239,5 +243,5 @@ class Config(DotDict):
             args = parser.parse_args()
             if args.config is not None:
                 path = args.config
-            return Config(path), args
-        return Config(path), None
+            return Config(path=path, **kwargs), args
+        return Config(path=path, **kwargs), None

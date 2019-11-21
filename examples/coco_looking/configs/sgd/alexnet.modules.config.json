@@ -1,11 +1,5 @@
 {
-  "transform": "type::transforms.defaults.Transform",
-  "dataset": "type::datasets.defaults.LookingDataset",
-  "data_builder": "type::data_builders.multiprocess.DataBuilder",
-  "criterion": "type::criterions.defaults.Criterion",
-  "model": "type::models.alexnet.AlexNetFeatureExtractionModel",
-  "optimizer": "type::optimizers.defaults.Optimizer",
-  "metric": "type::lighter.metric.BaseMetric",
-  "collectible": "type::lighter.collectible.BaseCollectible",
-  "writer": "type::lighter.writer.BaseWriter"
+  "strategy": {
+    "model": "type::models.alexnet.AlexNetFeatureExtractionModel"
+  }
 }

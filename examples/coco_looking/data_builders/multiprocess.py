@@ -2,7 +2,6 @@ import torch
 import numpy as np
 from torch.utils.data import SubsetRandomSampler
 
-from examples.coco_looking.datasets.multiprocess import LookingDataset
 from lighter.data_builder import BaseDataBuilder
 from lighter.decorator import config
 
@@ -11,7 +10,6 @@ class DataBuilder(BaseDataBuilder):
     @config(path='data_builders/multiprocess.config.json', property='data_builder')
     def __init__(self):
         super(DataBuilder, self).__init__()
-        self.dataset = LookingDataset()
 
     def loader(self):
         batch_size = self.config.data_builder.batch_size

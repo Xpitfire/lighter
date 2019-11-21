@@ -1,7 +1,6 @@
 import numpy as np
-
+from box import Box
 from lighter.decorator import context
-from lighter.misc import DotDict
 
 
 class BaseCollectible(object):
@@ -12,14 +11,14 @@ class BaseCollectible(object):
     """
     @context
     def __init__(self):
-        self.collection = DotDict()
+        self.collection = Box()
 
     def reset(self):
         """
         Resets the collectible instance.
         :return:
         """
-        self.collection = DotDict()
+        self.collection = Box()
 
     def update(self, category: str = None, **kwargs):
         """

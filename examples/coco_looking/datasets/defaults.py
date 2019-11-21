@@ -5,8 +5,6 @@ import numpy as np
 import pandas as pd
 from PIL import Image
 
-from examples.coco_looking.transforms.defaults import Transform
-from lighter.config import Config
 from lighter.dataset import BaseDataset
 from lighter.decorator import config
 
@@ -15,9 +13,6 @@ class LookingDataset(BaseDataset):
     @config(path='datasets/defaults.config.json', property='dataset')
     def __init__(self):
         super(LookingDataset, self).__init__()
-        self.config = Config.get_instance()
-        self.transform = Transform()
-        print('config: ', self.config)
         self.root_dir = self.config.dataset.root_dir
         self.source_file = self.config.dataset.source_file
         json_file = os.path.join(self.root_dir, self.source_file)

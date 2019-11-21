@@ -72,7 +72,7 @@ class TestLighter(unittest.TestCase):
         Context.create()
 
         class Demo:
-            @strategy(config='configs/alexnet.modules.config.json')
+            @strategy(config='configs/coco_looking.config.json')
             def __init__(self):
                 pass
         exp = Demo()

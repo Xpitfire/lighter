@@ -1,5 +1,5 @@
 from threading import RLock
-from lighter.misc import DotDict
+from box import Box
 
 
 class Registry(object):
@@ -17,8 +17,8 @@ class Registry(object):
         :param kwargs:
         """
         super(Registry, self).__init__(**kwargs)
-        self.instances = DotDict()
-        self.types = DotDict()
+        self.instances = Box()
+        self.types = Box()
 
     def register_type(self, name, type_):
         setattr(self.types, name, type_)

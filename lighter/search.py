@@ -1,11 +1,12 @@
 from typing import List
+from box import Box
 from lighter.config import Config
 from threading import RLock
-from lighter.misc import DotDict, generate_long_id
+from lighter.misc import generate_long_id
 from lighter.parameter import Parameter
 
 
-class ParameterSearch(DotDict):
+class ParameterSearch(Box):
     """
     Parameter search collection updated by the @search decorator.
     """

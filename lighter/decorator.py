@@ -1,10 +1,9 @@
 import functools
 import logging
 import inspect
-import torch
-
 from typing import Tuple, List, Callable
 from enum import Enum
+from box import Box
 from lighter.config import Config
 from lighter.context import Context
 from lighter.exceptions import DependencyInjectionError
@@ -51,7 +50,7 @@ def _handle_registration(source):
     context = Context.get_instance()
     parent, name = DotDict.resolve(config, source)
     types = getattr(parent, name)
-    types = {k: Loader.import_path(v[len("type::"):]) for k, v in types.items()}
+    types = {k: Loader.import_path(v[len("type::"):]) for k, v in types.strategy.items()}
     context.instantiate_types(types)
 
 
@@ -370,7 +369,7 @@ def search(group: str = None, params: List[Tuple[str, Parameter]] = None):
                 property = search
             else:
                 if group not in search.keys():
-                    property = DotDict()
+                    property = Box()
                     search[group] = property
                 property = search[group]
 
