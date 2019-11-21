@@ -1,0 +1,4 @@
+{
+  "import_config": "import::data_builders/defaults.config.json",
+  "num_workers": 1
+}

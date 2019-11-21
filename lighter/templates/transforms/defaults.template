@@ -4,10 +4,6 @@ from lighter.transform import BaseTransform
 
 class Transform(BaseTransform):
     def __init__(self):
-        super(Transform, self).__init__()
-        self.caller = transforms.Compose([
-            transforms.ToTensor(),
+        super(Transform, self).__init__([
+            transforms.ToTensor()
         ])
-
-    def __call__(self, values):
-        return self.caller(values)

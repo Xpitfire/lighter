@@ -4,6 +4,10 @@ from lighter.misc import generate_short_id
 from lighter.registry import Registry
 from lighter.search import ParameterSearch
 
+# TODO: remove in future terms
+import warnings
+warnings.simplefilter('ignore', FutureWarning)
+
 
 class Context(object):
     """

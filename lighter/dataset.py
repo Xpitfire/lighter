@@ -1,7 +1,7 @@
 import zipfile, os
 
 from torch.utils.data import Dataset
-from lighter.decorator import context, transform
+from lighter.decorator import transform
 import urllib.request as request
 import shutil
 
@@ -10,7 +10,6 @@ class BaseDataset(Dataset):
     """
     Dataset base class preparing the data.
     """
-    @context
     @transform
     def __init__(self):
         pass

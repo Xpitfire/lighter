@@ -1,13 +1,8 @@
-from lighter.decorator import context
+from torchvision.transforms import Compose
 
 
-class BaseTransform(object):
+class BaseTransform(Compose):
+    """Base class for transforming data.
     """
-    Base class for transforming data.
-    """
-    @context
-    def __init__(self):
-        pass
-
-    def __call__(self, *args, **kwargs):
-        raise NotImplementedError('BaseTransform: No implementation found!')
+    def __init__(self, transforms):
+        super(BaseTransform, self).__init__(transforms)

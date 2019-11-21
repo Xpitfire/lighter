@@ -1,3 +1,4 @@
+import multiprocessing
 import torch
 from lighter.scheduler import Scheduler
 
@@ -7,10 +8,11 @@ def worker(*args):
 
 
 if __name__ == '__main__':
-    num_devices = torch.cuda.device_count()
-    scheduler = Scheduler(path='runs/search/witty-tomcat',
-                          experiment='lighter.experiment.DefaultExperiment',
+    multiprocessing.set_start_method('spawn', force=True)
+    torch.multiprocessing.set_start_method('spawn', force=True)
+    num_devices = 1#torch.cuda.device_count()
+    scheduler = Scheduler(path='runs/search/solid-sloth',
+                          experiment='experiments.multiprocess.SearchExperiment',
                           device_name='cuda',
-                          num_worker=num_devices)
+                          num_workers=num_devices)
     scheduler.run()
-

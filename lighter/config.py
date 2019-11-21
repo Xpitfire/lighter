@@ -6,7 +6,7 @@ import logging
 
 import torch
 
-from lighter.exceptions import InvalidTypeReferenceError, TypeNameCollisionError
+from lighter.exceptions import InvalidTypeReferenceError
 from lighter.loader import Loader
 from lighter.misc import extract_named_args, try_to_number_or_bool, DotDict
 from lighter.registry import Registry

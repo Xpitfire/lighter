@@ -4,25 +4,18 @@ import torch
 import numpy as np
 import pandas as pd
 from PIL import Image
-
-from examples.coco_looking.transforms.defaults import Transform
-from lighter.config import Config
 from lighter.dataset import BaseDataset
-from lighter.decorator import config
 
 
 class LookingDataset(BaseDataset):
-    @config(path='datasets/defaults.config.json', property='dataset')
     def __init__(self):
         super(LookingDataset, self).__init__()
-        self.config = Config.get_instance()
-        self.transform = Transform()
-        print('config: ', self.config)
-        self.root_dir = self.config.dataset.root_dir
-        self.source_file = self.config.dataset.source_file
+        self.root_dir = "data/extract/"
+        self.source_file = "looking_labels.json"
         json_file = os.path.join(self.root_dir, self.source_file)
-        if not os.path.exists(json_file) and self.config.dataset.download_data:
-            BaseDataset.download_zip(self.config.dataset.data_url, self.config.dataset.root_dir)
+        if not os.path.exists(json_file):
+            BaseDataset.download_zip("https://www.dinu.at/wp-content/uploads/2019/11/COCO_Looking_Labels.zip",
+                                     self.root_dir)
         if not os.path.exists(json_file):
             raise FileNotFoundError('Looking Dataset is missing the meta file: {}'.format(json_file))
         with open(json_file, 'r') as file:

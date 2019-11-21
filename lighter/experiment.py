@@ -71,7 +71,7 @@ class BaseExperiment(object):
         """
         self.epoch = 0
         # save the new experiment config
-        path = os.path.join(self.checkpoints_dir, self.config.context_id)
+        path = os.path.join(self.checkpoints_dir, self.config.context_id, self.config.experiment_id)
         if not os.path.exists(path):
             os.makedirs(path)
         config_file = os.path.join(path, 'experiment.config.json')
@@ -188,7 +188,7 @@ class DefaultExperiment(BaseExperiment):
             collection = self.collectible.redux(func=np.mean)
             timestamp = datetime.timestamp(datetime.now())
             file_name = 'e-{}_time-{}'.format(epoch, timestamp)
-            path = os.path.join(self.checkpoints_dir, self.config.context_id)
+            path = os.path.join(self.checkpoints_dir, self.config.context_id, self.config.experiment_id)
             ckpt_file = os.path.join(path, '{}.ckpt'.format(file_name))
             torch.save({
                 'epoch': epoch,

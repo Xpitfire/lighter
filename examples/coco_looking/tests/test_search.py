@@ -22,7 +22,8 @@ class SearchExperiment(DefaultExperiment):
                                                    options=['configs/adam/alexnet.modules.config.json',
                                                             'configs/adam/inception.modules.config.json',
                                                             'configs/adam/resnet.modules.config.json']))])
-    @strategy(config='configs/coco_looking.config.json')
+    # strategy is used only to import all other unlisted properties
+    @strategy(config='configs/sgd/alexnet.modules.config.json')
     def __init__(self):
         super(SearchExperiment, self).__init__()
 

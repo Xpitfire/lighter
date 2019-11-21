@@ -1,3 +1,5 @@
+import socket
+from datetime import datetime
 from torch.utils.tensorboard import SummaryWriter
 from lighter.decorator import context
 
@@ -9,6 +11,9 @@ class BaseWriter(SummaryWriter):
     @context
     def __init__(self, log_dir=None, comment='', purge_step=None, max_queue=10,
                  flush_secs=120, filename_suffix=''):
+        if log_dir is None:
+            timestamp = datetime.timestamp(datetime.now())
+            log_dir = 'runs/{}-{}-{}'.format(timestamp, self.config.context_id, socket.gethostname())
         super(BaseWriter, self).__init__(log_dir=log_dir, comment=comment,
                                          purge_step=purge_step, max_queue=max_queue,
                                          flush_secs=flush_secs, filename_suffix=filename_suffix)
