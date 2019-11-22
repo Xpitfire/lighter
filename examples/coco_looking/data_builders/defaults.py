@@ -16,6 +16,7 @@ class DataBuilder(BaseDataBuilder):
         validation_split = self.config.data_builder.validation_split
         shuffle_dataset = self.config.data_builder.shuffle_dataset
         random_seed = self.config.data_builder.random_seed
+        num_workers = self.config.data_builder.num_workers
         # Creating data indices for training and validation splits:
         dataset_size = len(self.dataset)
         indices = list(range(dataset_size))
@@ -32,10 +33,10 @@ class DataBuilder(BaseDataBuilder):
         train_loader = torch.utils.data.DataLoader(self.dataset,
                                                    batch_size=batch_size,
                                                    sampler=train_sampler,
-                                                   num_workers=4)
+                                                   num_workers=num_workers)
         validation_loader = torch.utils.data.DataLoader(self.dataset,
                                                         batch_size=batch_size,
                                                         sampler=valid_sampler,
-                                                        num_workers=4)
+                                                        num_workers=num_workers)
 
         return train_loader, validation_loader

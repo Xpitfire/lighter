@@ -5,11 +5,12 @@ from torch.multiprocessing import Process
 from lighter.search import ParameterSearch
 from lighter.context import Context
 from lighter.loader import Loader
-from lighter.config import Config
-from lighter.registry import Registry
 
 
 class ContextBuilder(object):
+    """
+    Is used to create a proper context object for running an experiment with the current
+    """
     def __init__(self,
                  process_id: str,
                  schedule_file: str,
@@ -31,27 +32,40 @@ class ContextBuilder(object):
 
     def __next__(self):
         if self.idx < len(self.files):
-            context = Context.create(self.files[self.idx],
+            # create new context with default config
+            context = Context.create(config_file=self.files[self.idx],
                                      parse_args_override=True,
-                                     instantiate_types=False)
+                                     auto_instantiate_types=False,
+                                     allow_context_changes=False)
 
+            # assign a new default device
             context.config.device.default = self.device
+            # assign the process_id
             context.config.set_value('process_id', self.process_id)
 
-            context.registry = Registry.create_instance()
-            config = Config.create_instance(self.files[self.idx],
-                                            parse_args_override=True)
-            config.set_value('process_id', self.process_id)
-            config.device.default = self.device
-            context.config = config
+            # create types
             context.instantiate_types(context.registry.types)
 
+            # # override the existing registry with the newly defined instances
+            # context.registry = Registry.create_instance()
+            # # create a new config setting
+            # config = Config.create_instance(self.files[self.idx],
+            #                                 parse_args_override=True)
+
+            # create a new experiment
             experiment = self.experiment()
-            setattr(experiment, 'config', config)
+
+            # config.set_value('process_id', self.process_id)
+            # config.device.default = self.device
+            # context.config = config
+            context.instantiate_types(context.registry.types)
+
+
+            # setattr(experiment, 'config', config)
             search = ParameterSearch.create_instance()
-            setattr(experiment, 'search', search)
-            for key in config['strategy'].keys():
-                setattr(experiment, key, context.registry.instances[key])
+            # setattr(experiment, 'search', search)
+            # for key in config['strategy'].keys():
+            #     setattr(experiment, key, context.registry.instances[key])
 
             self.idx += 1
             return experiment
@@ -60,6 +74,9 @@ class ContextBuilder(object):
 
 
 class Executor:
+    """
+    Defines the main worker for executing a schedule flow.
+    """
     @staticmethod
     def worker(process_id: str, schedule_file: str, experiment: str, device):
         scheduler = ContextBuilder(process_id=process_id,

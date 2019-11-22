@@ -27,14 +27,17 @@ def _handle_injections(args, injectables: List[str]):
         if value is None:
             logging.error('Trying to inject dependency of unresolved key: {} into instance: {}'
                           .format(inject, instance))
-            raise DependencyInjectionError('Inject: {} - Instance: {}'.format(inject, instance))
+            raise DependencyInjectionError('Instance: {} - Injection-name: {} - Value: {}'
+                                           .format(instance, inject, value))
         setattr(instance, name, value)
 
 
 def _handle_config(args, path, source):
+    context = Context.get_instance()
     config = Config.get_instance()
     instance = args[0]
-    if path is not None:
+    # check if context is allowed to change and perform config updates
+    if context.allow_context_changes and path is not None:
         imported_config, _ = Config.load(path=path)
         if source is not None:
             parent, name = DotDict.resolve(config, source)
@@ -46,8 +49,11 @@ def _handle_config(args, path, source):
 
 
 def _handle_registration(source):
-    config = Config.get_instance()
     context = Context.get_instance()
+    # prevent type registration is context is not allowed to change
+    if not context.allow_context_changes:
+        return
+    config = Config.get_instance()
     parent, name = DotDict.resolve(config, source)
     types = getattr(parent, name)
     types = {k: Loader.import_path(v[len("type::"):]) for k, v in types.strategy.items()}
@@ -91,11 +97,12 @@ def device(func=None, name: str = None, source: str = 'device.default', property
 
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
+        context = Context.get_instance()
         config = Config.get_instance()
         obj_instance = args[0]
 
-        # update device according to id
-        if name is not None:
+        # update device according to id and check if context is allowed to be updated
+        if context.allow_context_changes and name is not None:
             config.set_value(source, name)
 
         value = config.get_value(source)
@@ -171,15 +178,16 @@ def inject(source: str, property: str, option: InjectOption = InjectOption.Insta
     def decorator(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
+            context = Context.get_instance()
             obj_instance = args[0]
 
-            value = None
             # if instances option selected lookup attribute or load if not already instantiated
             if option == InjectOption.Instance:
                 registry = Registry.get_instance()
                 instance, key = DotDict.resolve(registry.instances, source)
                 value = getattr(instance, key, None)
-                if value is None:
+                # prevent all side effects if allow_context_changes is False
+                if context.allow_context_changes and value is None:
                     value = _search_and_load_type(source)
             # otherwise if types then return simple type
             elif option == InjectOption.Type:
@@ -212,6 +220,11 @@ def register(type: str, property: str = None):
     def decorator(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
+            context = Context.get_instance()
+            # disable register to prevent all side effects on the registry
+            if not context.allow_context_changes:
+                return func(*args, **kwargs)
+
             obj_instance = args[0]
 
             registry = Registry.get_instance()
@@ -359,9 +372,14 @@ def search(group: str = None, params: List[Tuple[str, Parameter]] = None):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             search = ParameterSearch.get_instance()
+            context = Context.get_instance()
             instance = args[0]
 
             setattr(instance, 'search', search)
+            # prevent all side effects on search
+            if not context.allow_context_changes:
+                return func(*args, **kwargs)
+
             if group is None and params is None:
                 return func(*args, **kwargs)
 

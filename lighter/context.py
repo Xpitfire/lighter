@@ -21,8 +21,9 @@ class Context(object):
                  config_file: str,
                  config_dict: dict,
                  parse_args_override,
-                 instantiate_types: bool = True,
-                 device: str = None):
+                 device: str = None,
+                 auto_instantiate_types: bool = True,
+                 allow_context_changes: bool = True):
         """
         Create a context object and registers configs, types and instances of the defined modules.
         :param config_file: default config file
@@ -36,13 +37,21 @@ class Context(object):
                                                  device=device)
             self.config.set_value('context_id', generate_short_id())
             self.search = ParameterSearch.create_instance()
-            if instantiate_types:
-                self.instantiate_types(self.registry.types)
+            self.allow_context_changes = allow_context_changes
+            self.auto_instantiate_types = auto_instantiate_types
+            if auto_instantiate_types:
+                # if auto instantiation of types is enables, and no context is available this requires to assign
+                # the current instance to the global instance
+                if Context._instance is None:
+                    Context._instance = self
+                self.instantiate_types()
         finally:
             Context._mutex.release()
 
-    def instantiate_types(self, types):
+    def instantiate_types(self, types: dict = None):
         Context._mutex.acquire()
+        if types is None:
+            types = self.registry.types
         try:
             for name, class_ in types.items():
                 self.registry.register_instance(name, class_())
@@ -61,15 +70,18 @@ class Context(object):
     def create(config_file: str = None,
                config_dict: dict = None,
                parse_args_override: bool = True,
-               instantiate_types: bool = True,
-               device: str = None) -> "Context":
+               device: str = None,
+               auto_instantiate_types: bool = True,
+               allow_context_changes: bool = True) -> "Context":
         """
         Create application context threadsafe.
         :param config_file: Initial config file for context to load.
         :param config_dict: Initial config json for context to load.
         :param parse_args_override: Allows to override configs according to the command line arguments.
-        :param instantiate_types: Instantiates types after been registered
+        :param auto_instantiate_types: Instantiates types after been registered
         :param device: specifies the running device
+        :param allow_context_changes: If this is set to False, it prevents all decorators from modifying updates
+               on the configs, context and registry
         :return:
         """
         Context._mutex.acquire()
@@ -77,8 +89,9 @@ class Context(object):
             Context._instance = Context(config_file,
                                         config_dict=config_dict,
                                         parse_args_override=parse_args_override,
-                                        instantiate_types=instantiate_types,
-                                        device=device)
+                                        auto_instantiate_types=auto_instantiate_types,
+                                        device=device,
+                                        allow_context_changes=allow_context_changes)
             return Context._instance
         finally:
             Context._mutex.release()

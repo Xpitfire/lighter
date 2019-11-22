@@ -132,7 +132,7 @@ $> PYTHONPATH=. python tests/test_experiment.py
 
 One can also simply change the global device setting or initialize an experiment from command line by specifying theses arguments:
 ```python
-$> PYTHONPATH=. python tests/test_experiment.py --device cuda:1 --config <path-to-config>
+$> python tests/test_experiment.py --device cuda:1 --config <path-to-config>
 ```
 
 ## Advanced
@@ -143,6 +143,8 @@ One can simply extend from any base class within the lighter framework:
 ```python
 class SimpleExperiment(DefaultExperiment):
     @config(path='experiments/defaults.config.json', property='experiments')
+    @strategy(config='configs/modules.config.json')
+    @references
     def __init__(self):
         super(SimpleExperiment, self).__init__(epochs=self.config.experiments.num_epochs)
 
@@ -154,75 +156,133 @@ class SimpleExperiment(DefaultExperiment):
         preds = self.model(inputs)
         loss = self.metric(preds, targets)
         ...
-
-    def run(self):
-        for epoch in self.epochs:
-            self.train()
-            self.eval()
 ```
-In this example we use the `DefaultExperiment` class and create a new experiment. 
-The `@config` decorator injects the `defaults.config.json` into the `self.config` instance in a sub-property `experiments` of the default config.
-One can then access the properties by de-referencing `self.config.experiments.<property>`.
-`self.model` and `self.metric` are injected by the base class and are usually referenced in the `modules/defaults.config.json`.
+In this example we subclass the `DefaultExperiment` class and create a new experiment with some custom `eval()` and `train()` behaviour. 
+The `run()` work-flow is still used as defined in the base class `DefaultExperiment`.
+The `@references` decorator injects by default some properties into the current `SimpleExperiment` object instance. 
+If not other specified the `@reference` tries to inject the properties `['dataset', 'data_builder', 'criterion', 'model', 'writer', 'optimizer', 'transfom', 'metric', 'collectible']` which in this case are declared in the `configs/modules.defaults.config.json` config.
+Since `model` and `metric` are injected via `@references` they can be directly accessed via the `self` instance.
+
+
+The `@config` decorator injects additional configs for the current experiment instance by referencing `defaults.config.json` with an `experiments` alias. 
+All configs are by default created as a sub-property of `self.config` and are now referencable through the `experiments` alias.
+One can then access the properties as follows `self.config.experiments.<property>`.
 
 ### Decorators
 
-It is also possible to simply use the required decorators without base class sub-classing. 
-There are currently five decorators:
+In general it is also possible to simply use the required decorators without base class sub-classing.
+
+ 
+There are currently the following decorators available:
 * `@config` - injects the default config instance and allows to load new configs
 * `@context` - injects the application context which holds config and registry instances
 * `@transform` - injects the default data transform instance
 * `@dataset` - injects the default dataset instance
 * `@model` - injects the default model instance
-* `metric` - injects the default metric instance
+* `@metric` - injects the default metric instance
 * `@reference` - injects a singe defined instance
 * `@references` - injects a set of pre-set or defined instance(s)
-* `@strategy` - loads and defines a training set strategy from a config and injects the main object instances
+* `@strategy` - defines and loads a training strategy from a specified config path and injects the default object instances
 * `@register` - allows to quickly register a new type to the context registry and inject the instance into the current instance
 * `@hook` - allows to hook and overwrite an existing method to change the execution logic
 * `@inject` - allows to inject single instances into different context options (registry, types, instances, configs)
 * `@search` - allows to register hyper-parameters to parse a config schedule for parallelled executions
 
-By default the templates for a new project are creating a config file at the `configs/modules.config.json` path, which uses the following names for the dependency injection `['dataset', 'data_builder', 'criterion', 'model', 'writer', 'optimizer', 'transfom', 'metric', 'collectible']`.
-An experiment gets these instances automatically injected.
+By default the templates for a new project are creating a config file in the `configs/modules.config.json` path, which uses the following default names for the dependency injection `['dataset', 'data_builder', 'criterion', 'model', 'writer', 'optimizer', 'transfom', 'metric', 'collectible']`.
+An experiment gets these instances automatically instantiated and injected at runtime.
 ```json
 {
-  "transform": "type::transforms.defaults.Transform",
-  "dataset": "type::datasets.defaults.Dataset",
-  "data_builder": "type::data_builders.defaults.DataBuilder",
-  "criterion": "type::criterions.defaults.Criterion",
-  "model": "type::models.defaults.Model",
-  "optimizer": "type::optimizers.defaults.Optimizer",
-  "metric": "type::lighter.metric.BaseMetric",
-  "collectible": "type::lighter.collectible.BaseCollectible",
-  "writer": "type::lighter.writer.BaseWriter"
+  "strategy": {
+      "transform": "type::transforms.defaults.Transform",
+      "dataset": "type::datasets.defaults.Dataset",
+      "data_builder": "type::data_builders.defaults.DataBuilder",
+      "criterion": "type::criterions.defaults.Criterion",
+      "model": "type::models.defaults.Model",
+      "optimizer": "type::optimizers.defaults.Optimizer",
+      "metric": "type::lighter.metric.BaseMetric",
+      "collectible": "type::lighter.collectible.BaseCollectible",
+      "writer": "type::lighter.writer.BaseWriter"
+  }
 }
 ```
 
-But it is simple to inject custom objects or exchangeable names by referring to a new name or type:
+The above example groups the types in the `strategy` alias name to avoid config name collisions if other classes import configs using the same general names (model, metric, etc.) across the application.
+
+It is also simple to deviate from this naming convention or even inject custom types by exchanging names within the referencing configs:
 ```json
 {
   ...
-  "other_model_name": "type::models.other.Network",
+  "other_model": "type::models.other.Network",
+  "other_metric": "type::metrics.other.Metric",
   ...
 }
 ```
 
-This now allows to load a model using the `@model` decorator withe the new property reference.
+The defined name `other_model_name` is now uniquely assigned in the instance context and can be accessed via `@references(names=['other_model', 'other_metric'])`
+
+It is also possible to register types on the fly within the code at the class or method level:
 
 ```python
 class Demo:
-    @references(properties=['other_model_name'])
+    @register(type='envs.defaults.Environment', property='env')
+    @reference(name='env')
     def __init__(self):
         ...
-        self.other_model_name.<property>
+        obs = self.env.reset()
         ...
 ```
+
+Here the `@reference` decorator requires a name argument to match the instance.
 
 ### Config templates
 
 All configs are based on `json` files. Yet, when importing the configs `lighter` parses some escape sequences allowing for more modularization of your project structure:
+
 * `config::<config-file-path>` - imports another config into the current json config instance
 * `import::<config-file-path>` - imports all properties of the referenced config file into the current config instance (attention may override existing properties)
 * `type::<type-file-path>` - imports a python type which is registered to the application context `registry.types` and can be used to instantiate new objects
+
+### Parameter search
+
+One can simply use lighter for searching hyper-parameters or different setting using the `@search` decorator, which registers parameters referenced by configs to the global context.
+This generates a permutation of different settings using the parameter parser, which then allows for parallel execution either with the default built in scheduler or any other specialized framework for distributed optimization, such as [ray](https://github.com/ray-project/ray).
+
+```python
+class SearchExperiment(DefaultExperiment):
+    @search(group='sgd',
+            params=[('lr', CallableGridParameter(ref='optimizer.lr', min=0.001, max=0.005, step=0.001)),
+                    ('weight_decay', ListParameter(ref='optimizer.weight_decay', options=[0.0, 0.7, 0.9])),
+                    ('pretrained', BinaryParameter(ref='model.freeze_pretrained')),
+                    ('hidden_units', GridParameter(ref='model.hidden_units', min=100, max=1000, step=100)),
+                    ('strategy', StrategyParameter(ref='strategy',
+                                                   options=['configs/sgd/alexnet.modules.config.json',
+                                                            'configs/sgd/inception.modules.config.json',
+                                                            'configs/sgd/resnet.modules.config.json']))])
+    def __init__(self):
+        super(SearchExperiment, self).__init__()
+```
+
+Here `group` marks the grouping alias under which the upcoming parameters are registered in the context.
+The `params` argument takes in a list of two-tuples `(<name: str>, <param: Parameter>)`, where `name` marks the parameter alias within the group and `param` the type of search parameter used.
+
+Currently lighter offers six parameter types:
+
+* `GridParameter`: Search a range of values (min, max, steps) with fixed step size
+* `ListParameter`: Commit a list of parameters to lighter which is sequentially executed
+* `CallableGridParameter`: Search a range of values (min, max, callable) but with a callable lambda function which allows for non-linear step behaviour
+* `AnnealParameter`: Same as `CallableGridParameter` but for annealing a parameter
+* `BinaryParameter`: Return `True` and `False` values for a parameter
+* `StrategyParameter`: Allows to define different training strategies and switch between them
+
+To trigger the parameter config parsing run:
+
+```python
+# used for the initial configurations of the experiment
+Context.create(config_file='configs/sgd/alexnet.modules.config.json')
+se = SearchExperiment()
+cp = ConfigParser(experiment=se)
+cp.parse()
+```
+
+By default this saves all permuted configs to the `runs/search/` directory.
 
