@@ -242,30 +242,32 @@ All configs are based on `json` files. Yet, when importing the configs `lighter`
 * `import::<config-file-path>` - imports all properties of the referenced config file into the current config instance (attention may override existing properties)
 * `type::<type-file-path>` - imports a python type which is registered to the application context `registry.types` and can be used to instantiate new objects
 
-### Parameter search
+### Parameter search parser
 
 One can simply use lighter for searching hyper-parameters or different setting using the `@search` decorator, which registers parameters referenced by configs to the global context.
 This generates a permutation of different settings using the parameter parser, which then allows for parallel execution either with the default built in scheduler or any other specialized framework for distributed optimization, such as [ray](https://github.com/ray-project/ray).
 
 ```python
-class SearchExperiment(DefaultExperiment):
-    @search(group='sgd',
-            params=[('lr', CallableGridParameter(ref='optimizer.lr', min=0.001, max=0.005, step=0.001)),
-                    ('weight_decay', ListParameter(ref='optimizer.weight_decay', options=[0.0, 0.7, 0.9])),
-                    ('pretrained', BinaryParameter(ref='model.freeze_pretrained')),
-                    ('hidden_units', GridParameter(ref='model.hidden_units', min=100, max=1000, step=100)),
-                    ('strategy', StrategyParameter(ref='strategy',
-                                                   options=['configs/sgd/alexnet.modules.config.json',
-                                                            'configs/sgd/inception.modules.config.json',
-                                                            'configs/sgd/resnet.modules.config.json']))])
-    def __init__(self):
-        super(SearchExperiment, self).__init__()
+class SearchParameterRegistration:
+  @search(group='sgd',
+          params=[('lr', GridParameter(ref='optimizer.lr', min=0.001, max=0.005, step=0.001)),
+                  ('weight_decay', ListParameter(ref='optimizer.weight_decay', options=[0.0, 0.9])),
+                  ('pretrained', BinaryParameter(ref='model.freeze_pretrained')),
+                  ('hidden_units', GridParameter(ref='model.hidden_units', min=100, max=200, step=100)),
+                  ('optimizer', SetParameter(ref='strategy.optimizer', option="type::optimizers.defaults.Optimizer")),
+                  ('strategy', StrategyParameter(ref='strategy', options=['searches/coco_looking.config.json'])),
+                  ('model', ListParameter(ref='strategy.model',
+                                          options=['type::models.alexnet.AlexNetFeatureExtractionModel',
+                                                   'type::models.inception.InceptionNetFeatureExtractionModel',
+                                                   'type::models.resnet.ResNetFeatureExtractionModel']))])
+  def __init__(self):
+    pass
 ```
 
 Here `group` marks the grouping alias under which the upcoming parameters are registered in the context.
 The `params` argument takes in a list of two-tuples `(<name: str>, <param: Parameter>)`, where `name` marks the parameter alias within the group and `param` the type of search parameter used.
 
-Currently lighter offers six parameter types:
+Currently lighter offers the following parameter types:
 
 * `GridParameter`: Search a range of values (min, max, steps) with fixed step size
 * `ListParameter`: Commit a list of parameters to lighter which is sequentially executed
@@ -273,16 +275,40 @@ Currently lighter offers six parameter types:
 * `AnnealParameter`: Same as `CallableGridParameter` but for annealing a parameter
 * `BinaryParameter`: Return `True` and `False` values for a parameter
 * `StrategyParameter`: Allows to define different training strategies and switch between them
+* `SetParameter`: Represents a simple setter of properties that is used to register settings, which don't change, but need to be imported
 
 To trigger the parameter config parsing run:
 
 ```python
-# used for the initial configurations of the experiment
-Context.create(config_file='configs/sgd/alexnet.modules.config.json')
-se = SearchExperiment()
+context = Context.create()
+se = ParameterSearchRegistration()
 cp = ConfigParser(experiment=se)
 cp.parse()
 ```
 
 By default this saves all permuted configs to the `runs/search/` directory.
 
+### Parameter search scheduler
+
+Lighter comes with a built in config scheduler that can execute experiments in parallel for single machine experiments.
+For many prototyping cases this is sufficient and helps during development, but naturally flexibility is highest priority and it is possible and recommended to use 3rd party frameworks to schedule decentralized parallel executions on clusters of machines.
+
+For the simple case, 
+
+```python
+import torch
+from lighter.scheduler import Scheduler
+
+# required to execute torch in parallel processes
+torch.multiprocessing.set_start_method('spawn', force=True)
+num_devices = torch.cuda.device_count()
+# sets the path to the list of configs
+scheduler = Scheduler(path='runs/search/witty-poodle',
+                      experiment='experiments.defaults.Experiment',
+                      device_name='cuda',
+                      num_workers=num_devices)
+scheduler.run()
+```
+
+The scheduler in the code snipped above starts as many processes as there are GPUs available and schedules the list of configs across these devices.
+Since we defined a simple writer, one can simply monitor the progress using tensorboard.
