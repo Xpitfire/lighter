@@ -2,6 +2,7 @@
 
 Lightweight extension for torch to speed up project prototyping and enable dependency injection of object instances.
 This framework includes a setup script to get started with a pre-defined project structure and the documentation offers examples and an overview of the initial usage.
+For more examples follow the [link to the GitHub repository](https://github.com/Xpitfire/lighter).
 
 ## Install
 
