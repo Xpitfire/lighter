@@ -25,10 +25,9 @@ def _handle_injections(args, injectables: List[str]):
         parent, name = DotDict.resolve(registry.instances, inject)
         value = getattr(parent, name, None)
         if value is None:
-            logging.error('Trying to inject dependency of unresolved key: {} into instance: {}'
-                          .format(inject, instance))
-            raise DependencyInjectionError('Instance: {} - Injection-name: {} - Value: {}'
-                                           .format(instance, inject, value))
+            raise DependencyInjectionError('Trying to inject dependency of unresolved '
+                                           'key: {} into instance: {} with value: {}'
+                                           .format(inject, instance, value))
         setattr(instance, name, value)
 
 

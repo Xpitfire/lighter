@@ -1,8 +1,11 @@
 from threading import RLock
+
 from lighter.config import Config
 from lighter.misc import generate_short_id
 from lighter.registry import Registry
 from lighter.search import ParameterSearch
+
+import numpy as np
 
 # TODO: remove in future terms
 import warnings
@@ -48,13 +51,41 @@ class Context(object):
         finally:
             Context._mutex.release()
 
+    def _resolve_dependency_graph(self, types: dict, num_retries: int = 0, max_retries: int = np.inf):
+        """
+        Registers instances with retries if graph resolving fails due to transitive dependencies between
+        modules.
+        TODO: improve by different prioritization technique
+        :param types: types to instantiate
+        :param num_retries: current retry count
+        :param max_retries: maximum recursion depth
+        :return:
+        """
+        retry = {}
+        error = None
+        for name, class_ in types.items():
+            try:
+                self.registry.register_instance(name, class_())
+            except Exception as e:
+                error = e
+                retry[name] = class_
+        if len(retry) > 0 and num_retries < max_retries:
+            num_retries += 1
+            self._resolve_dependency_graph(retry, num_retries, max_retries)
+        if num_retries >= max_retries:
+            raise error
+
     def instantiate_types(self, types: dict = None):
+        """
+        Instantiates and registers types to the registry instances.
+        :param types: types to instantiate and register
+        :return:
+        """
         Context._mutex.acquire()
         if types is None:
             types = self.registry.types
         try:
-            for name, class_ in types.items():
-                self.registry.register_instance(name, class_())
+            self._resolve_dependency_graph(types, 0, max_retries=len(list(types.keys())))
         finally:
             Context._mutex.release()
 

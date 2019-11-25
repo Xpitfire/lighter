@@ -2,7 +2,6 @@ import os
 import json
 import torch
 from torch.multiprocessing import Process
-from lighter.search import ParameterSearch
 from lighter.context import Context
 from lighter.loader import Loader
 
@@ -31,6 +30,10 @@ class ContextBuilder(object):
         return self
 
     def __next__(self):
+        """
+        Iterates over the schedules list of config files and prepares the context for execution.
+        :return: a prepared experiment
+        """
         if self.idx < len(self.files):
             # create new context with default config
             context = Context.create(config_file=self.files[self.idx],
@@ -46,26 +49,8 @@ class ContextBuilder(object):
             # create types
             context.instantiate_types(context.registry.types)
 
-            # # override the existing registry with the newly defined instances
-            # context.registry = Registry.create_instance()
-            # # create a new config setting
-            # config = Config.create_instance(self.files[self.idx],
-            #                                 parse_args_override=True)
-
             # create a new experiment
             experiment = self.experiment()
-
-            # config.set_value('process_id', self.process_id)
-            # config.device.default = self.device
-            # context.config = config
-            context.instantiate_types(context.registry.types)
-
-
-            # setattr(experiment, 'config', config)
-            search = ParameterSearch.create_instance()
-            # setattr(experiment, 'search', search)
-            # for key in config['strategy'].keys():
-            #     setattr(experiment, key, context.registry.instances[key])
 
             self.idx += 1
             return experiment
@@ -88,6 +73,9 @@ class Executor:
 
 
 class Scheduler:
+    """
+    Schedules a list of parameters within a designated path for execution on multiple devices.
+    """
     def __init__(self,
                  path: str,
                  experiment: str,
@@ -101,6 +89,10 @@ class Scheduler:
         self.processes = []
 
     def build_schedule(self):
+        """
+        Builds a schedule file from the defined path with configs.
+        :return:
+        """
         # create empty schedule
         schedule = {'{}:{}'.format(self.device_name, i % self.num_workers): [] for i in range(self.num_workers)}
         # assign configs to schedule
@@ -114,6 +106,10 @@ class Scheduler:
             file.write(dict_str)
 
     def create_processes(self):
+        """
+        Creates a list of processes with execution workers.
+        :return:
+        """
         for i in range(self.num_workers):
             process_id = '{}:{}'.format(self.device_name, i)
             device = process_id
@@ -125,14 +121,26 @@ class Scheduler:
             self.processes.append(process)
 
     def execute_processes(self):
+        """
+        Executes a schedule on the initiated process workers.
+        :return:
+        """
         for t in self.processes:
             t.start()
         [p.join() for p in self.processes]
 
     def clean_processes(self):
+        """
+        Deletes the list of processes.
+        :return:
+        """
         self.processes = []
 
     def run(self):
+        """
+        Main execution loop for starting a scheduled run.
+        :return:
+        """
         self.build_schedule()
         self.create_processes()
         self.execute_processes()

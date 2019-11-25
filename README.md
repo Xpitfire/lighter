@@ -248,18 +248,19 @@ One can simply use lighter for searching hyper-parameters or different setting u
 This generates a permutation of different settings using the parameter parser, which then allows for parallel execution either with the default built in scheduler or any other specialized framework for distributed optimization, such as [ray](https://github.com/ray-project/ray).
 
 ```python
-class SearchParameterRegistration:
+class ParameterSearchRegistration:
   @search(group='sgd',
-          params=[('lr', GridParameter(ref='optimizer.lr', min=0.001, max=0.005, step=0.001)),
-                  ('weight_decay', ListParameter(ref='optimizer.weight_decay', options=[0.0, 0.9])),
-                  ('pretrained', BinaryParameter(ref='model.freeze_pretrained')),
-                  ('hidden_units', GridParameter(ref='model.hidden_units', min=100, max=200, step=100)),
-                  ('optimizer', SetParameter(ref='strategy.optimizer', option="type::optimizers.defaults.Optimizer")),
-                  ('strategy', StrategyParameter(ref='strategy', options=['searches/coco_looking.config.json'])),
-                  ('model', ListParameter(ref='strategy.model',
-                                          options=['type::models.alexnet.AlexNetFeatureExtractionModel',
-                                                   'type::models.inception.InceptionNetFeatureExtractionModel',
-                                                   'type::models.resnet.ResNetFeatureExtractionModel']))])
+              params=[('lr', GridParameter(ref='optimizer.lr', min=0.001, max=0.005, step=0.001)),
+                      ('weight_decay', ListParameter(ref='optimizer.weight_decay', options=[0.0, 0.9])),
+                      ('freeze_pretrained', BinaryParameter(ref='model.freeze_pretrained')),
+                      ('hidden_units', GridParameter(ref='model.hidden_units', min=100, max=200, step=100)),
+                      ('optimizer', SetParameter(ref='strategy.optimizer', option="type::optimizers.defaults.Optimizer")),
+                      ('model_output', SetParameter(ref='model.output', option=1)),
+                      ('model_pretrained', SetParameter(ref='model.pretrained', option=True)),
+                      ('strategy', StrategyParameter(ref='strategy', options=['searches/coco_looking.config.json'])),
+                      ('model', ListParameter(ref='strategy.model',
+                                              options=['type::models.alexnet.AlexNetFeatureExtractionModel',
+                                                       'type::models.resnet.ResNetFeatureExtractionModel']))])
   def __init__(self):
     pass
 ```
@@ -280,13 +281,18 @@ Currently lighter offers the following parameter types:
 To trigger the parameter config parsing run:
 
 ```python
-context = Context.create()
-se = ParameterSearchRegistration()
-cp = ConfigParser(experiment=se)
+from searches.defaults import ParameterSearchRegistration
+from lighter.parser import ConfigParser
+from lighter.context import Context
+
+context = Context.create(auto_instantiate_types=False)
+psr = ParameterSearchRegistration()
+cp = ConfigParser(experiment=psr)
 cp.parse()
 ```
 
-By default this saves all permuted configs to the `runs/search/` directory.
+By default this saves all permuted configs to the `runs/search/<gen-name>` directory.
+The `auto_instantiate_types` parameter prevents that the context instantiates the registered types when loading in configs.
 
 ### Parameter search scheduler
 
