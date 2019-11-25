@@ -85,7 +85,9 @@ class Context(object):
         if types is None:
             types = self.registry.types
         try:
-            self._resolve_dependency_graph(types, 0, max_retries=len(list(types.keys())))
+            len_types = len(list(types.keys()))
+            if len_types > 0:
+                self._resolve_dependency_graph(types, 0, max_retries=len_types)
         finally:
             Context._mutex.release()
 
