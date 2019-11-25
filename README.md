@@ -66,7 +66,7 @@ my_project:
     - __init__.py
     - defaults.config.json
     - defaults.py
-  * data_buildres
+  * data_builders
     - __init__.py
     - defaults.config.json
     - defaults.py
