@@ -250,17 +250,17 @@ This generates a permutation of different settings using the parameter parser, w
 ```python
 class ParameterSearchRegistration:
   @search(group='sgd',
-              params=[('lr', GridParameter(ref='optimizer.lr', min=0.001, max=0.005, step=0.001)),
-                      ('weight_decay', ListParameter(ref='optimizer.weight_decay', options=[0.0, 0.9])),
-                      ('freeze_pretrained', BinaryParameter(ref='model.freeze_pretrained')),
-                      ('hidden_units', GridParameter(ref='model.hidden_units', min=100, max=200, step=100)),
-                      ('optimizer', SetParameter(ref='strategy.optimizer', option="type::optimizers.defaults.Optimizer")),
-                      ('model_output', SetParameter(ref='model.output', option=1)),
-                      ('model_pretrained', SetParameter(ref='model.pretrained', option=True)),
-                      ('strategy', StrategyParameter(ref='strategy', options=['searches/coco_looking.config.json'])),
-                      ('model', ListParameter(ref='strategy.model',
-                                              options=['type::models.alexnet.AlexNetFeatureExtractionModel',
-                                                       'type::models.resnet.ResNetFeatureExtractionModel']))])
+          params=[('lr', GridParameter(ref='optimizer.lr', min=0.001, max=0.005, step=0.001)),
+                  ('weight_decay', ListParameter(ref='optimizer.weight_decay', options=[0.0, 0.9])),
+                  ('freeze_pretrained', BinaryParameter(ref='model.freeze_pretrained')),
+                  ('hidden_units', GridParameter(ref='model.hidden_units', min=100, max=200, step=100)),
+                  ('optimizer', SetParameter(ref='strategy.optimizer', option="type::optimizers.defaults.Optimizer")),
+                  ('model_output', SetParameter(ref='model.output', option=1)),
+                  ('model_pretrained', SetParameter(ref='model.pretrained', option=True)),
+                  ('strategy', StrategyParameter(ref='strategy', options=['searches/coco_looking.config.json'])),
+                  ('model', ListParameter(ref='strategy.model',
+                                          options=['type::models.alexnet.AlexNetFeatureExtractionModel',
+                                                   'type::models.resnet.ResNetFeatureExtractionModel']))])
   def __init__(self):
     pass
 ```
