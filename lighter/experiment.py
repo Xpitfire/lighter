@@ -133,13 +133,15 @@ class DefaultExperiment(BaseExperiment):
                  epochs: int = 100,
                  enable_checkpoints: bool = True,
                  checkpoints_dir: str = 'runs/',
-                 checkpoints_interval: int = 1):
+                 checkpoints_interval: int = 1,
+                 redux_function=np.mean):
         super(DefaultExperiment, self).__init__(experiment_id=experiment_id,
                                                 epochs=epochs,
                                                 enable_checkpoints=enable_checkpoints,
                                                 checkpoints_dir=checkpoints_dir,
                                                 checkpoints_interval=checkpoints_interval)
         self.train_loader, self.val_loader = None, None
+        self.redux_function = redux_function
 
     def initialize(self):
         # get data loaders
@@ -153,34 +155,40 @@ class DefaultExperiment(BaseExperiment):
         self.writer.step()
         self.collectible.reset()
 
+    def train_batch(self, x, y):
+        x, y = x.to(self.device), y.to(self.device)
+        self.optimizer.zero_grad()
+        pred = self.model(x)
+        loss = self.criterion(pred, y)
+        loss.backward()
+        self.optimizer.step()
+        self.collectible.update(category='train', **{'loss': loss.detach().cpu().item()})
+        self.collectible.update(category='train', **self.metric(pred.detach().cpu(),
+                                                                y.detach().cpu()))
+
     def train(self):
         if self.train_loader is not None:
             self.model.train()
             for i, (x, y) in enumerate(self.train_loader):
-                x, y = x.to(self.device), y.to(self.device)
-                self.optimizer.zero_grad()
-                pred = self.model(x)
-                loss = self.criterion(pred, y)
-                loss.backward()
-                self.optimizer.step()
-                self.collectible.update(category='train', **{'loss': loss.detach().cpu().item()})
-                self.collectible.update(category='train', **self.metric(pred.detach().cpu(),
-                                                                        y.detach().cpu()))
-            collection = self.collectible.redux(func=np.mean)
+                self.train_batch(x, y)
+            collection = self.collectible.redux(func=self.redux_function)
             self.writer.write(category='train', **collection)
+
+    def eval_batch(self, x, y):
+        x, y = x.to(self.device), y.to(self.device)
+        pred = self.model(x)
+        loss = self.criterion(pred, y)
+        self.collectible.update(category='val', **{'loss': loss.detach().cpu().item()})
+        self.collectible.update(category='val', **self.metric(pred.detach().cpu(),
+                                                              y.detach().cpu()))
 
     def eval(self):
         if self.val_loader is not None:
             self.model.eval()
             with torch.no_grad():
                 for i, (x, y) in enumerate(self.val_loader):
-                    x, y = x.to(self.device), y.to(self.device)
-                    pred = self.model(x)
-                    loss = self.criterion(pred, y)
-                    self.collectible.update(category='val', **{'loss': loss.detach().cpu().item()})
-                    self.collectible.update(category='val', **self.metric(pred.detach().cpu(),
-                                                                          y.detach().cpu()))
-                collection = self.collectible.redux(func=np.mean)
+                    self.eval_batch(x, y)
+                collection = self.collectible.redux(func=self.redux_function)
                 self.writer.write(category='eval', **collection)
 
     def checkpoint(self, epoch: int):
