@@ -257,12 +257,13 @@ def hook(method: str, replace_with: Callable, *args, **kwargs):
     return decorator
 
 
-def strategy(config: str, source: str = 'strategy', properties: list = None):
+def strategy(config: str, source: str = 'strategy', properties: list = None, ignore_none_values: bool = True):
     """
     Strategy decorator to inject a training strategy instance.
     :param source: defines the source name of the current training strategy
     :param config: property file for the current training strategy
     :param properties: names of the injection variable as specified in the config
+    :param ignore_none_values: ignores None value references of injections
     :return:
     """
     if properties is None:
@@ -273,7 +274,7 @@ def strategy(config: str, source: str = 'strategy', properties: list = None):
         def wrapper(*args, **kwargs):
             _handle_config(args, config, source)
             _handle_registration(source)
-            _handle_injections(args, properties, ignore_none_values=False)
+            _handle_injections(args, properties, ignore_none_values=ignore_none_values)
             return func(*args, **kwargs)
         return wrapper
     return decorator
