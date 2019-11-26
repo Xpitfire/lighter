@@ -164,8 +164,8 @@ class DefaultExperiment(BaseExperiment):
                 loss.backward()
                 self.optimizer.step()
                 self.collectible.update(category='train', **{'loss': loss.detach().cpu().item()})
-                self.collectible.update(category='train', **self.metric(y.detach().cpu(),
-                                                                        pred.detach().cpu()))
+                self.collectible.update(category='train', **self.metric(pred.detach().cpu(),
+                                                                        y.detach().cpu()))
             collection = self.collectible.redux(func=np.mean)
             self.writer.write(category='train', **collection)
 
@@ -178,8 +178,8 @@ class DefaultExperiment(BaseExperiment):
                     pred = self.model(x)
                     loss = self.criterion(pred, y)
                     self.collectible.update(category='val', **{'loss': loss.detach().cpu().item()})
-                    self.collectible.update(category='val', **self.metric(y.detach().cpu(),
-                                                                          pred.detach().cpu()))
+                    self.collectible.update(category='val', **self.metric(pred.detach().cpu(),
+                                                                          y.detach().cpu()))
                 collection = self.collectible.redux(func=np.mean)
                 self.writer.write(category='eval', **collection)
 

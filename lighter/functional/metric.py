@@ -5,7 +5,7 @@ def TP(target, prediction):
     :param prediction: prediction value
     :return:
     """
-    return (target * prediction.round()).sum()
+    return (target.float() * prediction.float().round()).sum()
 
 
 def TN(target, prediction):
@@ -15,7 +15,7 @@ def TN(target, prediction):
     :param prediction: prediction value
     :return:
     """
-    return ((target == 0).float() * (prediction.round() == 0).float()).sum()
+    return ((target == 0).float() * (prediction.float().round() == 0).float()).sum()
 
 
 def FP(target, prediction):
@@ -25,7 +25,7 @@ def FP(target, prediction):
     :param prediction: prediction value
     :return:
     """
-    return ((target == 0).float() * prediction.round()).sum()
+    return ((target == 0).float() * prediction.float().round()).sum()
 
 
 def FN(target, prediction):
@@ -35,7 +35,7 @@ def FN(target, prediction):
     :param prediction: prediction value
     :return:
     """
-    return (target * (prediction.round() == 0).float()).sum()
+    return (target.float() * (prediction.float().round() == 0).float()).sum()
 
 
 def TPR(target, prediction, eps=1e-7):
@@ -49,7 +49,7 @@ def TPR(target, prediction, eps=1e-7):
     tp = TP(target, prediction)
     fn = FN(target, prediction)
     s = tp + fn + eps
-    return  tp / s
+    return tp / s
 
 
 def TNR(target, prediction, eps=1e-7):
@@ -107,7 +107,7 @@ def ACC(target, prediction, eps=1e-7):
     """
     tp = TP(target, prediction)
     tn = TN(target, prediction)
-    p = target.sum()
+    p = target.sum().float()
     n = (target == 0).sum().float()
     s = p + n + eps
     assert (s > 0)
@@ -124,7 +124,7 @@ def BACC(target, prediction, eps=1e-7):
     """
     tp = TP(target, prediction)
     tn = TN(target, prediction)
-    p = target.sum()
+    p = target.sum().float()
     n = (target == 0).sum().float()
     s = (p + eps) + tn / (n + eps)
     assert (s > 0)
