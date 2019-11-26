@@ -17,14 +17,14 @@ DEFAULT_PROPERTIES = ['transform', 'dataset', 'data_builder', 'model', 'optimize
                       'collectible', 'criterion', 'metric', 'writer']
 
 
-def _handle_injections(args, injectables: List[str]):
+def _handle_injections(args, injectables: List[str], ignore_none_values):
     registry = Registry.get_instance()
     instance = args[0]
 
     for inject in injectables:
         parent, name = DotDict.resolve(registry.instances, inject)
         value = getattr(parent, name, None)
-        if value is None:
+        if not ignore_none_values and value is None:
             raise DependencyInjectionError('Trying to inject dependency of unresolved '
                                            'key: {} into instance: {} with value: {}'
                                            .format(inject, instance, value))
@@ -59,10 +59,10 @@ def _handle_registration(source):
     context.instantiate_types(types)
 
 
-def _wrapper_delegate(func, injectables):
+def _wrapper_delegate(func, injectables, ignore_none_values):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
-        _handle_injections(args, injectables)
+        _handle_injections(args, injectables, ignore_none_values)
         return func(*args, **kwargs)
     return wrapper
 
@@ -273,7 +273,7 @@ def strategy(config: str, source: str = 'strategy', properties: list = None):
         def wrapper(*args, **kwargs):
             _handle_config(args, config, source)
             _handle_registration(source)
-            _handle_injections(args, properties)
+            _handle_injections(args, properties, ignore_none_values=False)
             return func(*args, **kwargs)
         return wrapper
     return decorator
@@ -288,24 +288,25 @@ def reference(name: str):
     def decorator(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
-            _handle_injections(args, [name])
+            _handle_injections(args, [name], ignore_none_values=False)
             return func(*args, **kwargs)
         return wrapper
     return decorator
 
 
-def references(func=None, names: list = None):
+def references(func=None, names: list = None, ignore_none_values: bool = True):
     """
     Reference decorator to inject multiple values at once without registering new objects.
     If no list is provided the default properties will be injected:
     'transform', 'dataset', 'data_builder', 'model', 'optimizer', 'collectible', 'criterion', 'metric', 'writer'
     :param func: original function instance
     :param names: List of properties to inject.
+    :param ignore_none_values: ignores None value references of injections
     :return:
     """
     if names is None:
         names = DEFAULT_PROPERTIES
-    return _wrapper_delegate(func, names)
+    return _wrapper_delegate(func, names, ignore_none_values=ignore_none_values)
 
 
 def transform(func):
@@ -318,7 +319,7 @@ def transform(func):
     if not func:
         # workaround to enable empty decorator
         return functools.partial(dataset, properties=properties)
-    return _wrapper_delegate(func, properties)
+    return _wrapper_delegate(func, properties, ignore_none_values=False)
 
 
 def dataset(func):
@@ -331,7 +332,7 @@ def dataset(func):
     if not func:
         # workaround to enable empty decorator
         return functools.partial(dataset, properties=properties)
-    return _wrapper_delegate(func, properties)
+    return _wrapper_delegate(func, properties, ignore_none_values=False)
 
 
 def model(func):
@@ -344,7 +345,7 @@ def model(func):
     if not func:
         # workaround to enable empty decorator
         return functools.partial(model, properties=properties)
-    return _wrapper_delegate(func, properties)
+    return _wrapper_delegate(func, properties, ignore_none_values=False)
 
 
 def metric(func):
@@ -357,7 +358,7 @@ def metric(func):
     if not func:
         # workaround to enable empty decorator
         return functools.partial(model, properties=properties)
-    return _wrapper_delegate(func, properties)
+    return _wrapper_delegate(func, properties, ignore_none_values=False)
 
 
 def search(group: str = None, params: List[Tuple[str, Parameter]] = None):
