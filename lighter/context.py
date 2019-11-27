@@ -1,6 +1,10 @@
+import traceback
 from threading import RLock
 
+import logging
+
 from lighter.config import Config
+from lighter.exceptions import TypeInstantiationError
 from lighter.misc import generate_short_id
 from lighter.registry import Registry
 from lighter.search import ParameterSearch
@@ -51,7 +55,7 @@ class Context(object):
         finally:
             Context._mutex.release()
 
-    def _resolve_dependency_graph(self, types: dict, num_retries: int = 0, max_retries: int = np.inf):
+    def _resolve_dependency_graph(self, types: dict, num_retries: int = 0, max_retries: int = np.inf, error=[]):
         """
         Registers instances with retries if graph resolving fails due to transitive dependencies between
         modules.
@@ -62,18 +66,20 @@ class Context(object):
         :return:
         """
         retry = {}
-        error = None
         for name, class_ in types.items():
             try:
                 self.registry.register_instance(name, class_())
-            except Exception as e:
-                error = e
+            except Exception:
+                err = traceback.format_exc()
+                error.append(err)
                 retry[name] = class_
         if len(retry) > 0 and num_retries < max_retries:
             num_retries += 1
             self._resolve_dependency_graph(retry, num_retries, max_retries)
         if num_retries >= max_retries:
-            raise error
+            for e in error:
+                logging.exception(e, exc_info=True)
+            raise TypeInstantiationError('Could not resolve the dependency graph due to type creation errors.')
 
     def instantiate_types(self, types: dict = None):
         """

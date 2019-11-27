@@ -307,6 +307,9 @@ def references(func=None, names: list = None, ignore_none_values: bool = True):
     """
     if names is None:
         names = DEFAULT_PROPERTIES
+    if not func:
+        # workaround to enable empty decorator
+        return functools.partial(references, names=names, ignore_none_values=ignore_none_values)
     return _wrapper_delegate(func, names, ignore_none_values=ignore_none_values)
 
 
@@ -319,7 +322,7 @@ def transform(func):
     properties = ['transform']
     if not func:
         # workaround to enable empty decorator
-        return functools.partial(dataset, properties=properties)
+        return functools.partial(transform)
     return _wrapper_delegate(func, properties, ignore_none_values=False)
 
 
@@ -332,7 +335,7 @@ def dataset(func):
     properties = ['dataset']
     if not func:
         # workaround to enable empty decorator
-        return functools.partial(dataset, properties=properties)
+        return functools.partial(dataset)
     return _wrapper_delegate(func, properties, ignore_none_values=False)
 
 
@@ -345,7 +348,7 @@ def model(func):
     properties = ['model']
     if not func:
         # workaround to enable empty decorator
-        return functools.partial(model, properties=properties)
+        return functools.partial(model)
     return _wrapper_delegate(func, properties, ignore_none_values=False)
 
 
@@ -358,7 +361,7 @@ def metric(func):
     properties = ['metric']
     if not func:
         # workaround to enable empty decorator
-        return functools.partial(model, properties=properties)
+        return functools.partial(metric)
     return _wrapper_delegate(func, properties, ignore_none_values=False)
 
 

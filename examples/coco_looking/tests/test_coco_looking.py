@@ -3,7 +3,8 @@ import unittest
 
 from lighter.config import Config
 from lighter.context import Context
-from lighter.decorator import inject, config, device, context, search, strategy, InjectOption, reference, hook
+from lighter.decorator import inject, config, device, context, search, strategy, InjectOption, reference, hook, \
+    references
 from lighter.experiment import DefaultExperiment
 from lighter.utils.io import create_template_file, get_lighter_path
 from lighter.parameter import GridParameter
@@ -113,6 +114,22 @@ class TestLighter(unittest.TestCase):
         exp = Exp()
         exp()
         self.assertTrue(s.success)
+
+    def test_references(self):
+        Context.create(DEFAULT_CONFIG_FILE)
+
+        class Demo:
+            def __init__(self):
+                pass
+        demo = Demo()
+        Context.get_instance().registry.instances['demo'] = demo
+
+        class Usage:
+            @references(names=['demo'])
+            def __init__(self):
+                pass
+        usage = Usage()
+        self.assertTrue(usage.demo is not None)
 
 
 if __name__ == '__main__':

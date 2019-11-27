@@ -26,3 +26,7 @@ class DependencyInjectionError(Exception):
             'Object is not callable due to unresolved variable dependency. '
             'Verify your configurations and be aware that class ordering in configs matters, '
             'due to instantiation order! {}'.format(message))
+
+
+class TypeInstantiationError(Exception):
+    pass
