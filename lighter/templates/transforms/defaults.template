@@ -1,4 +1,4 @@
-from torchvision import transforms
+import torchvision.transforms as transforms
 from lighter.transform import BaseTransform
 
 

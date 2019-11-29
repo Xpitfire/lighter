@@ -24,10 +24,7 @@ def import_value_rec(name, value):
             type_ = Loader.import_path(value[len("type::"):])
             if type_ is None:
                 raise InvalidTypeReferenceError('Config: Could not find specified reference: {}'.format(value))
-            # check if types where already registered
-            # if Registry.get_instance().contains_type(name):
-            #     raise TypeNameCollisionError('Config: Could not load type, because another type '
-            #                                  'was already registered with the same name: {}'.format(name))
+
             # register type to registry
             Registry.get_instance().register_type(name, type_)
 
@@ -99,7 +96,9 @@ class Config(Box):
         if kwargs:
             self.initialize_from_json(kwargs.items())
         # Read config and override with args if passed
-        if path is not None and os.path.exists(path):
+        if path is not None:
+            if not os.path.exists(path):
+                raise FileNotFoundError('Invalid config path! Could not resolve: {}'.format(path))
             with open(path) as f:
                 self.initialize_from_json(json.loads(f.read()).items())
             # override if necessary
