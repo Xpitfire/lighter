@@ -1,11 +1,10 @@
-from lighter.decorator import context, model
+from lighter.decorator import context
 
 
 class BaseOptimizer(object):
     """
     Base class proxy for the PyTorch optimizers with injected 'model' and 'context' instances.
     """
-    @model
     @context
     def __init__(self):
         self.optimizer = None
