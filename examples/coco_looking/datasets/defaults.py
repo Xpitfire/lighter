@@ -4,9 +4,9 @@ import torch
 import numpy as np
 import pandas as pd
 from PIL import Image
-
 from lighter.dataset import BaseDataset
 from lighter.decorator import config
+from lighter.utils.inet import download_and_extract_zip
 
 
 class LookingDataset(BaseDataset):
@@ -17,7 +17,7 @@ class LookingDataset(BaseDataset):
         self.source_file = self.config.dataset.source_file
         json_file = os.path.join(self.root_dir, self.source_file)
         if not os.path.exists(json_file) and self.config.dataset.download_data:
-            BaseDataset.download_zip(self.config.dataset.data_url, self.config.dataset.root_dir)
+            download_and_extract_zip(self.config.dataset.data_url, self.config.dataset.root_dir)
         if not os.path.exists(json_file):
             raise FileNotFoundError('Looking Dataset is missing the meta file: {}'.format(json_file))
         with open(json_file, 'r') as file:
