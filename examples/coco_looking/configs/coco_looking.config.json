@@ -1,5 +1,5 @@
 {
   "strategy": {
-    "import_config": "import::configs/alexnet.modules.config.json"
+    "import_config": "import::configs/facenet.modules.config.json"
   }
 }

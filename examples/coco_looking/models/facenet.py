@@ -10,7 +10,9 @@ class FaceNetExtractionModel(BaseModule):
     @config(path='models/facenet.config.json', property='model')
     def __init__(self):
         super(FaceNetExtractionModel, self).__init__()
-        self.facenet = InceptionResnetV1(pretrained='vggface2').to(self.device)
+        self.facenet = InceptionResnetV1(pretrained=self.config.model.pretrained).to(self.device)
+        for param in self.facenet.parameters():
+            param.requires_grad = not self.config.model.freeze_pretrained
         self.spectral_norm = self.config.model.spectral_norm
         self._change_facenet_output_dim()
         self.dropout = nn.Dropout(p=self.config.model.dropout)

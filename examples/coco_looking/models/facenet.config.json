@@ -1,5 +1,7 @@
 {
   "output": 1,
   "spectral_norm": false,
+  "pretrained": "vggface2",
+  "freeze_pretrained": false,
   "dropout": 0
 }
