@@ -2,5 +2,6 @@
   "output": 1,
   "pretrained": true,
   "freeze_pretrained": false,
-  "aux_logits": false
+  "aux_logits": false,
+  "hidden_units": 100
 }
