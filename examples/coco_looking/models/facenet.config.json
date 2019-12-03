@@ -1,0 +1,5 @@
+{
+  "output": 1,
+  "spectral_norm": false,
+  "dropout": 0
+}

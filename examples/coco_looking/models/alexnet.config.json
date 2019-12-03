@@ -1,6 +1,5 @@
 {
   "output": 1,
   "pretrained": true,
-  "freeze_pretrained": true,
-  "hidden_units": 100
+  "freeze_pretrained": false
 }
