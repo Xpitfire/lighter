@@ -24,5 +24,4 @@ class InceptionNetFeatureExtractionModel(BaseModule):
         h = self.hidden(h)
         h = torch.relu(h)
         h = self.final(h)
-        raise 1
         return torch.sigmoid(h)
