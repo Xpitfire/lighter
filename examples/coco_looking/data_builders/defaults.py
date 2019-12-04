@@ -14,15 +14,18 @@ class DataBuilder(BaseDataBuilder):
     def loader(self):
         batch_size = self.config.data_builder.batch_size
         validation_split = self.config.data_builder.validation_split
-        shuffle_dataset = self.config.data_builder.shuffle_dataset
-        random_seed = self.config.data_builder.random_seed
+        shuffle_sampler = self.config.data_builder.shuffle_sampler
+        random_seed = None
+        if hasattr(self.config.data_builder, 'random_seed'):
+            random_seed = self.config.data_builder.random_seed
         num_workers = self.config.data_builder.num_workers
         # Creating data indices for training and validation splits:
         dataset_size = len(self.dataset)
         indices = list(range(dataset_size))
         split = int(np.floor(validation_split * dataset_size))
-        if shuffle_dataset:
+        if random_seed:
             np.random.seed(random_seed)
+        if shuffle_sampler:
             np.random.shuffle(indices)
         train_indices, val_indices = indices[split:], indices[:split]
 
