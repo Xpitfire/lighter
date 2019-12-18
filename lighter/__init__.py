@@ -15,3 +15,4 @@ from . import writer
 from . import transform
 from . import search
 from . import parameter
+from . import nn
