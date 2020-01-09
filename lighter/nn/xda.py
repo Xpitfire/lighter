@@ -19,7 +19,10 @@ class XdA(torch.nn.Module):
     beta and alpha are hyperparameters for tuning the updates and gating function.
     This gating function uses LayerNorm to re-normalize the input.
     """
-    def __init__(self, alpha: float = 0.01, beta: float = 0.0, mode: str = 'mean'):
+    def __init__(self, alpha: float = 0.01,
+                 beta: float = 0.0,
+                 mode: str = 'mean',
+                 norm_type: str = 'layernorm'):
         """
         Context-dependent activations implementation using normalized activation space summary statistics
         for the non-linearity definition.
@@ -30,6 +33,7 @@ class XdA(torch.nn.Module):
         much the new current vs the new activation summary statistic contributes.
         :param beta: The beta parameter regulates the leakyness of the gating non-linearity.
         :param mode: The summary statistic
+        :param norm_type: Normalize the x values according to the given normalization type before activation
         """
         super(XdA, self).__init__()
         self.alpha = alpha
@@ -37,9 +41,11 @@ class XdA(torch.nn.Module):
         self.mode = mode
         self.phi = None
         self.norm = None
+        self.norm_type = norm_type
         assert 0 <= self.alpha <= 1
         assert 0 <= self.beta <= 1
         assert self.mode in ['mean', 'median']
+        assert self.norm_type in [None, 'layernorm', 'layernorm_elementwise_affine']
 
     def _mask(self, x):
         """
@@ -57,7 +63,12 @@ class XdA(torch.nn.Module):
         :return:
         """
         if self.phi is None:
-            self.norm = torch.nn.LayerNorm(x.shape[1:], elementwise_affine=False)
+            # init normalization
+            if self.norm_type == 'layernorm':
+                self.norm = torch.nn.LayerNorm(x.shape[1:], elementwise_affine=False)
+            elif self.norm_type == 'layernorm_elementwise_affine':
+                self.norm = torch.nn.LayerNorm(x.shape[1:], elementwise_affine=True)
+            # init phi parameters
             self.phi = torch.nn.Parameter(torch.zeros(x.shape[1:]), requires_grad=False).to(x.device)
             if self.mode == 'mean':
                 x_ = x.detach().mean(0).data
@@ -87,7 +98,8 @@ class XdA(torch.nn.Module):
         # check if layer is initialized
         self._check_init(x)
         # normalize the layer according to the layer norm
-        x = self.norm(x)
+        if self.norm is not None:
+            x = self.norm(x)
         # updates the gating summary statistic
         self._update_phi(x)
         # creates a binary mask to disable units
