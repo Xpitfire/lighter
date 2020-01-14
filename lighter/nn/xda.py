@@ -55,6 +55,15 @@ class XdA(torch.nn.Module):
         """
         return (x >= self.phi.expand_as(x)).float()
 
+    @staticmethod
+    def _norm(x):
+        """
+        Computes the normalized vector for the committed value x.
+        :param x: the activation space inputs
+        :return: normalized action space vector
+        """
+        return x / torch.norm(x)
+
     def _check_init(self, x):
         """
         Checks if the activation function is already initialized and if not, it creates the respective
@@ -64,7 +73,9 @@ class XdA(torch.nn.Module):
         """
         if self.phi is None:
             # init normalization
-            if self.norm_type == 'layernorm':
+            if self.norm_type == 'norm':
+                self.norm = XdA._norm
+            elif self.norm_type == 'layernorm':
                 self.norm = torch.nn.LayerNorm(x.shape[1:], elementwise_affine=False)
             elif self.norm_type == 'layernorm_elementwise_affine':
                 self.norm = torch.nn.LayerNorm(x.shape[1:], elementwise_affine=True)
