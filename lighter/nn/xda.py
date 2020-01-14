@@ -45,7 +45,7 @@ class XdA(torch.nn.Module):
         assert 0 <= self.alpha <= 1
         assert 0 <= self.beta <= 1
         assert self.mode in ['mean', 'median']
-        assert self.norm_type in [None, 'layernorm', 'layernorm_elementwise_affine']
+        assert self.norm_type in [None, 'norm', 'layernorm', 'layernorm_elementwise_affine']
 
     def _mask(self, x):
         """
