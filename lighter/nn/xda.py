@@ -62,7 +62,12 @@ class XdA(torch.nn.Module):
         :param x: the activation space inputs
         :return: normalized action space vector
         """
-        return x / torch.norm(x)
+        x_shape = x.shape
+        x = x.view(x_shape[0], -1)
+        x_norm = torch.norm(x, dim=1, keepdim=True)
+        x = x / x_norm
+        x = x.view(x_shape)
+        return x
 
     def _check_init(self, x):
         """
