@@ -22,7 +22,10 @@ class BaseWriter(SummaryWriter):
     def write(self, category: str = None, *args, **kwargs):
         for key, value in kwargs.items():
             # remove collectible key prefix if available
-            key = key.split('$_')[-1]
+            val = key.split('$_')
+            cat, key = val[0], val[1]
+            if category is not None and cat != category:
+                continue
             # prepend category if available
             if category is not None:
                 key = '{}/{}'.format(category, key)

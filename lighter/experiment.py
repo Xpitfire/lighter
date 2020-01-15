@@ -35,20 +35,24 @@ class BaseExperiment(object):
 
     def __iter__(self):
         self.initialize()
+        self.eval()
         return self
 
     def __next__(self):
         if self.epoch < self.epochs:
-            self.pre_epoch()
-            self.train()
-            self.eval()
-            self.checkpoint(self.epoch)
-            self.post_epoch()
+            self._epoch(self.epoch)
             self.epoch += 1
             return self.epoch
         else:
             self.finalize()
             raise StopIteration
+
+    def _epoch(self, epoch):
+        self.pre_epoch()
+        self.train()
+        self.eval()
+        self.checkpoint(epoch)
+        self.post_epoch()
 
     def run(self):
         """
@@ -56,12 +60,9 @@ class BaseExperiment(object):
         :return:
         """
         self.initialize()
+        self.eval()
         for epoch in tqdm(range(self.epochs)):
-            self.pre_epoch()
-            self.train()
-            self.eval()
-            self.checkpoint(epoch)
-            self.post_epoch()
+            self._epoch(epoch)
         self.finalize()
 
     def initialize(self):
@@ -178,9 +179,9 @@ class DefaultExperiment(BaseExperiment):
         x, y = x.to(self.device), y.to(self.device)
         pred = self.model(x)
         loss = self.criterion(pred, y)
-        self.collectible.update(category='val', **{'loss': loss.detach().cpu().item()})
-        self.collectible.update(category='val', **self.metric(pred.detach().cpu(),
-                                                              y.detach().cpu()))
+        self.collectible.update(category='eval', **{'loss': loss.detach().cpu().item()})
+        self.collectible.update(category='eval', **self.metric(pred.detach().cpu(),
+                                                               y.detach().cpu()))
 
     def eval(self):
         if self.val_loader is not None:
@@ -193,7 +194,7 @@ class DefaultExperiment(BaseExperiment):
 
     def checkpoint(self, epoch: int):
         if self.enable_checkpoints and epoch % self.checkpoints_interval == 0:
-            collection = self.collectible.redux(func=np.mean)
+            collection = self.collectible.redux(func=self.redux_function)
             timestamp = datetime.timestamp(datetime.now())
             file_name = 'e-{}_time-{}'.format(epoch, timestamp)
             path = os.path.join(self.checkpoints_dir, self.config.context_id, self.config.experiment_id)
