@@ -24,7 +24,7 @@ class BaseWriter(SummaryWriter):
             # remove collectible key prefix if available
             val = key.split('$_')
             cat, key = val[0], val[1]
-            if category is not None and cat != category:
+            if category is not None and cat != "${}".format(category):
                 continue
             # prepend category if available
             if category is not None:
