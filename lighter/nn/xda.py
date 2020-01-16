@@ -83,7 +83,7 @@ class XdA(torch.nn.Module):
             elif self.norm_type == 'layernorm':
                 self.norm = torch.nn.LayerNorm(x.shape[1:], elementwise_affine=False)
             elif self.norm_type == 'layernorm_elementwise_affine':
-                self.norm = torch.nn.LayerNorm(x.shape[1:], elementwise_affine=True)
+                self.norm = torch.nn.LayerNorm(x.shape[1:], elementwise_affine=True).to(x.device)
             # init phi parameters
             self.phi = torch.nn.Parameter(torch.zeros(x.shape[1:]), requires_grad=False).to(x.device)
             if self.mode == 'mean':
