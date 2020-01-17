@@ -45,7 +45,7 @@ class XdA(torch.nn.Module):
         assert 0 <= self.alpha <= 1
         assert 0 <= self.beta <= 1
         assert self.mode in ['mean', 'median']
-        assert self.norm_type in [None, 'norm', 'layernorm', 'layernorm_elementwise_affine']
+        assert self.norm_type in [None, 'vecnorm', 'layernorm', 'mean', 'std']
 
     def _mask(self, x):
         """
@@ -56,17 +56,65 @@ class XdA(torch.nn.Module):
         return (x >= self.phi.expand_as(x)).float()
 
     @staticmethod
-    def _norm(x):
+    def _layer_norm(x, eps=1e-7):
         """
-        Computes the normalized vector for the committed value x.
-        :param x: the activation space inputs
-        :return: normalized action space vector
+        Computes the layer norm for the committed value x.
         """
         x_shape = x.shape
-        x = x.view(x_shape[0], -1)
-        x_norm = torch.norm(x, dim=1, keepdim=True)
-        x = x / x_norm
-        x = x.view(x_shape)
+        if len(x_shape) == 2:
+            x = (x - torch.mean(x, dim=-1, keepdim=True)) / torch.sqrt(torch.var(x, dim=-1, keepdim=True) + eps)
+        elif len(x_shape) > 2:
+            x = x.view(x_shape[0], -1)
+            x = (x - torch.mean(x, dim=-1, keepdim=True)) / torch.sqrt(torch.var(x, dim=-1, keepdim=True) + eps)
+            x = x.view(x_shape)
+        else:
+            raise NotImplementedError('Unsupported normalization shape: {}'.format(x_shape))
+        return x
+
+    @staticmethod
+    def _vec_norm(x, p=2, eps=1e-7):
+        """
+        Computes the normalized vector for the committed value x.
+        """
+        x_shape = x.shape
+        if len(x_shape) == 2:
+            x_norm = torch.pow(torch.sum(torch.pow(x, p), dim=-1, keepdim=True) + eps, 1/p)
+            x = x / x_norm
+        elif len(x_shape) > 2:
+            x = x.view(x_shape[0], -1)
+            x_norm = torch.pow(torch.sum(torch.pow(x, p), dim=-1, keepdim=True) + eps, 1/p)
+            x = x / x_norm
+            x = x.view(x_shape)
+        return x
+
+    @staticmethod
+    def _mean(x):
+        """
+        Computes the mean normalization for a given x.
+        """
+        x_shape = x.shape
+        if len(x_shape) == 2:
+            x = x - torch.mean(x, dim=1, keepdim=True)
+        elif len(x_shape) > 2:
+            x = x.view(x_shape[0], -1)
+            x = x - torch.mean(x, dim=1, keepdim=True)
+            x = x.view(x_shape)
+        return x
+
+    @staticmethod
+    def _std(x, eps=1e-7):
+        """
+        Computes the mean normalization for a given x.
+        """
+        x_shape = x.shape
+        if len(x_shape) == 2:
+            x_std = torch.sqrt(torch.var(x, dim=1, keepdim=True) + eps)
+            x = x / x_std
+        elif len(x_shape) > 2:
+            x = x.view(x_shape[0], -1)
+            x_std = torch.sqrt(torch.var(x, dim=1, keepdim=True) + eps)
+            x = x / x_std
+            x = x.view(x_shape)
         return x
 
     def _check_init(self, x):
@@ -78,12 +126,14 @@ class XdA(torch.nn.Module):
         """
         if self.phi is None:
             # init normalization
-            if self.norm_type == 'norm':
-                self.norm = XdA._norm
+            if self.norm_type == 'vecnorm':
+                self.norm = XdA._vec_norm
             elif self.norm_type == 'layernorm':
-                self.norm = torch.nn.LayerNorm(x.shape[1:], elementwise_affine=False)
-            elif self.norm_type == 'layernorm_elementwise_affine':
-                self.norm = torch.nn.LayerNorm(x.shape[1:], elementwise_affine=True).to(x.device)
+                self.norm = XdA._layer_norm
+            elif self.norm_type == 'mean':
+                self.norm = XdA._mean
+            elif self.norm_type == 'std':
+                self.norm = XdA._std
             # init phi parameters
             self.phi = torch.nn.Parameter(torch.zeros(x.shape[1:]), requires_grad=False).to(x.device)
             if self.mode == 'mean':
