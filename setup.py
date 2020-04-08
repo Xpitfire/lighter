@@ -4,7 +4,7 @@ with open("README.md", "r") as fh:
     readme = fh.read()
 
 requirements = {"install": ["ffmpeg", "natsort", "numpy", "tqdm", "torch", "torchvision",
-                            "tensorboard", "coloredlogs", "petname", "pandas", "ray", "setproctitle",
+                            "tensorboard", "coloredlogs", "petname", "pandas", "setproctitle",
                             "multiprocess", "python-box"]}
 
 install_requires = requirements["install"]
@@ -13,7 +13,7 @@ setup(
     # Metadata
     name="torch-lighter",
     author="Marius-Constantin Dinu",
-    version="0.2.22",
+    version="0.2.23",
     author_email="dinu.marius-constantin@hotmail.com",
     url="https://github.com/Xpitfire/lighter",
     scripts=['bin/lighter-init'],
