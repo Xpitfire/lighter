@@ -43,7 +43,7 @@ class Linear(torch.nn.Module):
         )
 
 
-class Conv2D(_ConvNd):
+class Conv2d(_ConvNd):
     def __init__(self, in_channels, out_channels, kernel_size, stride=1,
                  padding=0, dilation=1, groups=1,
                  bias=True, padding_mode='zeros'):
@@ -51,7 +51,7 @@ class Conv2D(_ConvNd):
         stride = _pair(stride)
         padding = _pair(padding)
         dilation = _pair(dilation)
-        super(Conv2D, self).__init__(
+        super(Conv2d, self).__init__(
             in_channels, out_channels, kernel_size, stride, padding, dilation,
             False, _pair(0), groups, bias, padding_mode)
 
@@ -72,7 +72,7 @@ class Conv2D(_ConvNd):
         return h
 
 
-class Conv1D(_ConvNd):
+class Conv1d(_ConvNd):
     def __init__(self, in_channels, out_channels, kernel_size, stride=1,
                  padding=0, dilation=1, groups=1,
                  bias=True, padding_mode='zeros'):
@@ -80,7 +80,7 @@ class Conv1D(_ConvNd):
         stride = _single(stride)
         padding = _single(padding)
         dilation = _single(dilation)
-        super(Conv1D, self).__init__(
+        super(Conv1d, self).__init__(
             in_channels, out_channels, kernel_size, stride, padding, dilation,
             False, _single(0), groups, bias, padding_mode)
 
