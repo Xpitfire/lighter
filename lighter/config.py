@@ -97,13 +97,18 @@ class Config(Box):
             self.initialize_from_json(kwargs.items())
         # Read config and override with args if passed
         if path is not None:
-            if not os.path.exists(path):
-                raise FileNotFoundError('Invalid config path! Could not resolve: {}'.format(path))
-            with open(path) as f:
-                self.initialize_from_json(json.loads(f.read()).items())
-            # override if necessary
-            if override_args is not None:
-                self.override_from_commandline(override_args)
+            if isinstance(path, str):
+                if not os.path.exists(path):
+                    raise FileNotFoundError('Invalid config path! Could not resolve: {}'.format(path))
+                with open(path) as f:
+                    self.initialize_from_json(json.loads(f.read()).items())
+                # override if necessary
+                if override_args is not None:
+                    self.override_from_commandline(override_args)
+            elif isinstance(path, Box):
+                self.initialize_from_dict(path)
+            else:
+                raise TypeError('Unsupported data after initialization!', path)
 
     def copy(self) -> "Config":
         config = Config()
